@@ -14,3 +14,11 @@ Linux:
 bam server_release
 
 Note: tested with gcc5 under debian8, report, if older versions don't work
+
+
+MORE THAN 16 SLOT SERVER:
+change these values:
+src/engine/shared/network.h - NET_MAX_CLIENTS to the value you want
+src/engine/shared/protocol.h - MAX_CLIENTS to the value you want(must be the same as NET_MAX_CLIENTS!!)
+
+AND DON'T FORGOT TO UPDATE YOUR .cfg -> sv_max_clients
