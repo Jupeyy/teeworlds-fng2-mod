@@ -21,4 +21,6 @@ change these values:
 src/engine/shared/network.h - NET_MAX_CLIENTS to the value you want
 src/engine/shared/protocol.h - MAX_CLIENTS to the value you want(must be the same as NET_MAX_CLIENTS!!)
 
-AND DON'T FORGOT TO UPDATE YOUR .cfg -> sv_max_clients
+AND DON'T FORGOT TO UPDATE YOUR .cfg -> sv_max_clients and your specator slot votes
+
+start.sh is a automatic restart script for linux... start it as screen ./start.sh
