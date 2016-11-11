@@ -103,7 +103,8 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 
 void CCharacter::Destroy()
 {
-	GameServer()->SendTuningParams(m_pPlayer->GetCID());
+	if(g_Config.m_SvSmoothFreezeMode)
+		GameServer()->SendTuningParams(m_pPlayer->GetCID());
 	GameServer()->m_World.m_Core.m_apCharacters[m_pPlayer->GetCID()] = 0;
 	m_Alive = false;
 }
@@ -433,7 +434,7 @@ void CCharacter::Unfreeze(int pPlayerID) {
 	}
 		
 	if(g_Config.m_SvSmoothFreezeMode)
-	GameServer()->SendTuningParams(m_pPlayer->GetCID());
+		GameServer()->SendTuningParams(m_pPlayer->GetCID());
 }
 
 void CCharacter::SetEmote(int Emote, int Tick)
@@ -713,7 +714,8 @@ void CCharacter::Die(int Killer, int Weapon)
 
 	// a nice sound
 	GameServer()->CreateSound(m_Pos, SOUND_PLAYER_DIE);
-	GameServer()->SendTuningParams(m_pPlayer->GetCID());
+	if(g_Config.m_SvSmoothFreezeMode)
+		GameServer()->SendTuningParams(m_pPlayer->GetCID());
 
 	// this is for auto respawn after 3 secs
 	m_pPlayer->m_DieTick = Server()->Tick();
@@ -795,7 +797,8 @@ void CCharacter::DieSpikes(int pPlayerID, unsigned char spikes_flag) {
 
 		// a nice sound
 		GameServer()->CreateSound(m_Pos, SOUND_PLAYER_DIE);
-		GameServer()->SendTuningParams(m_pPlayer->GetCID());
+		if(g_Config.m_SvSmoothFreezeMode)
+			GameServer()->SendTuningParams(m_pPlayer->GetCID());
 
 		// this is for auto respawn after 3 secs
 		m_pPlayer->m_DieTick = Server()->Tick();
