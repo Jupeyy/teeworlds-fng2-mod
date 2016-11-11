@@ -190,7 +190,8 @@ void CPlayer::Snap(int SnappingClient)
 		CNetObj_SpectatorInfo *pSpectatorInfo = static_cast<CNetObj_SpectatorInfo *>(Server()->SnapNewItem(NETOBJTYPE_SPECTATORINFO, ClientID, sizeof(CNetObj_SpectatorInfo)));
 		if(!pSpectatorInfo)
 			return;
-
+		
+		pSpectatorInfo->m_SpectatorID = m_SpectatorID;
 		if(!GameServer()->m_apPlayers[SnappingClient]->IsSnappingClient(m_SpectatorID, GameServer()->m_apPlayers[SnappingClient]->m_ClientVersion, pSpectatorInfo->m_SpectatorID))
 			pSpectatorInfo->m_SpectatorID = m_SpectatorID;
 		pSpectatorInfo->m_X = m_ViewPos.x;
