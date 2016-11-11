@@ -14,6 +14,8 @@ CGameControllerFNG2BoomSolo::CGameControllerFNG2BoomSolo(class CGameContext *pGa
 
 	if(m_Config.m_SvTournamentMode) m_Warmup = 60*Server()->TickSpeed();
 	else m_Warmup = m_Config.m_SvWarmup;
+	
+	g_pData->m_Weapons.m_aId[WEAPON_GRENADE].m_Ammoregentime = 1500;
 }
 
 CGameControllerFNG2BoomSolo::CGameControllerFNG2BoomSolo(class CGameContext *pGameServer, CConfiguration& pConfig)
@@ -23,6 +25,8 @@ CGameControllerFNG2BoomSolo::CGameControllerFNG2BoomSolo(class CGameContext *pGa
 
 	if(m_Config.m_SvTournamentMode) m_Warmup = 60*Server()->TickSpeed();
 	else m_Warmup = m_Config.m_SvWarmup;
+	
+	g_pData->m_Weapons.m_aId[WEAPON_GRENADE].m_Ammoregentime = 1500;
 }
 
 void CGameControllerFNG2BoomSolo::Tick()
