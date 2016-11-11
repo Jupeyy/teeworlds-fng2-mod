@@ -1,0 +1,12 @@
+/* (c) KeksTW        */
+#ifndef GAME_SERVER_FNG2_DEFINE_H
+#define GAME_SERVER_FNG2_DEFINE_H
+
+enum{
+	WEAPON_SPIKE_NORMAL = 6,
+	WEAPON_SPIKE_RED,
+	WEAPON_SPIKE_BLUE,
+	WEAPON_SPIKE_GOLD,
+};
+
+#endif
