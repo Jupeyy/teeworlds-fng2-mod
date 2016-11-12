@@ -1494,7 +1494,7 @@ void CServer::PumpNetwork()
 				Msg.AddInt(Chunk);
 				Msg.AddInt(ChunkSize);
 				Msg.AddRaw(&m_pCurrentMapData[Offset], ChunkSize);
-				SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, i, true);
+				SendMsgEx(&Msg, MSGFLAG_FLUSH, i, true);
 
 				if(g_Config.m_Debug)
 				{
@@ -1536,7 +1536,7 @@ void CServer::PumpNetwork()
 					Msg.AddInt(Chunk);
 					Msg.AddInt(ChunkSize);
 					Msg.AddRaw(&mapToDownload->m_pCurrentMapData[Offset], ChunkSize);
-					SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, i, true);
+					SendMsgEx(&Msg, MSGFLAG_FLUSH, i, true);
 
 					if(true || g_Config.m_Debug)
 					{

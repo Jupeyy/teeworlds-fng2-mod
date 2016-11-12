@@ -28,7 +28,7 @@ MACRO_CONFIG_INT(SvEmotionalTees, sv_emotional_tees, 0, 0, 1, CFGFLAG_SERVER, "E
 MACRO_CONFIG_INT(SvEmoteWheel, sv_emote_wheel, 0, 0, 1, CFGFLAG_SERVER, "Enable emote wheel like in ddrace with /emote chat command.")
 
 //ddnet thingy
-MACRO_CONFIG_INT(SvMapWindow, sv_map_window, 15, 0, 100, CFGFLAG_SERVER, "Map downloading send-ahead window")
+MACRO_CONFIG_INT(SvMapWindow, sv_map_window, 10, 0, 100, CFGFLAG_SERVER, "Map downloading send-ahead window")
 // netlimit
 MACRO_CONFIG_INT(SvNetlimit, sv_netlimit, 500, 0, 10000, CFGFLAG_SERVER, "Netlimit: Maximum amount of traffic a client is allowed to use (in kb/s)")
 MACRO_CONFIG_INT(SvNetlimitAlpha, sv_netlimit_alpha, 50, 1, 100, CFGFLAG_SERVER, "Netlimit: Alpha of Exponention moving average")
