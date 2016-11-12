@@ -761,7 +761,7 @@ void CCharacter::DieSpikes(int pPlayerID, unsigned char spikes_flag) {
 
 			if (GameServer()->m_pController->IsTeamplay() && IsFalseSpike(GameServer()->m_apPlayers[pPlayerID]->GetTeam(), spikes_flag)) {
 				CCharacter* pKiller = ((CPlayer*)GameServer()->m_apPlayers[pPlayerID])->GetCharacter();
-				if (pKiller) {
+				if (pKiller && !pKiller->IsFreezed()) {
 					pKiller->Freeze(g_Config.m_SvFalseSpikeFreeze);
 					GameServer()->CreateSound(pKiller->m_Pos, SOUND_TEE_CRY);
 				}
