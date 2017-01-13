@@ -971,7 +971,7 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 				lastasktick[ClientID] = Tick();
 				if (Chunk == 0)
 				{
-					lastsent[ClientID] = 0;
+					lastsent[ClientID] = Chunk;
 				}
 			
 				// drop faulty map data requests
@@ -1023,7 +1023,7 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 					lastasktick[ClientID] = Tick();
 					if (Chunk == 0)
 					{
-						lastsent[ClientID] = 0;
+						lastsent[ClientID] = Chunk;
 					}
 
 					// drop faulty map data requests
@@ -1049,7 +1049,7 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 					Msg.AddRaw(&mapToDownload->m_pCurrentMapData[Offset], ChunkSize);
 					SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID, true);
 
-					if(true || g_Config.m_Debug)
+					if(g_Config.m_Debug)
 					{
 						char aBuf[256];
 						str_format(aBuf, sizeof(aBuf), "sending chunk %d with size %d", Chunk, ChunkSize);
@@ -1538,7 +1538,7 @@ void CServer::PumpNetwork()
 					Msg.AddRaw(&mapToDownload->m_pCurrentMapData[Offset], ChunkSize);
 					SendMsgEx(&Msg, MSGFLAG_FLUSH, i, true);
 
-					if(true || g_Config.m_Debug)
+					if(g_Config.m_Debug)
 					{
 						char aBuf[256];
 						str_format(aBuf, sizeof(aBuf), "sending chunk %d with size %d", Chunk, ChunkSize);

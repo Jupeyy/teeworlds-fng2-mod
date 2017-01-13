@@ -184,6 +184,7 @@ public:
 	const char *ErrorString();
 	void SignalResend();
 	int State() const { return m_State; }
+	void SetState(unsigned State) { m_State = State; }
 	const NETADDR *PeerAddress() const { return &m_PeerAddr; }
 
 	void ResetErrorString() { m_ErrorString[0] = 0; }

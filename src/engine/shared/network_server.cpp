@@ -84,7 +84,6 @@ int CNetServer::Update()
 			}
 			else {
 				if (Drop(i, m_aSlots[i].m_Connection.ErrorString(), false) != 0) {
-
 				}
 			}
 		}
@@ -249,7 +248,7 @@ int CNetServer::Send(CNetChunk *pChunk)
 		}
 		else
 		{
-			Drop(pChunk->m_ClientID, "Error sending data");
+			//Drop(pChunk->m_ClientID, "Error sending data");
 		}
 	}
 	return 0;
