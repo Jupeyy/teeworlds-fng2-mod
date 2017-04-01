@@ -515,6 +515,7 @@ void CCharacter::Tick()
 		m_pPlayer->m_ForceBalanced = false;
 	}
 
+	//before the core update to know if we hooked somebody before it.
 	int iHookedPlayer = m_Core.m_HookedPlayer;
 
 	m_Core.m_Input = m_Input;
@@ -548,13 +549,13 @@ void CCharacter::Tick()
 	// Previnput
 	m_PrevInput = m_Input;
 
-	if (iHookedPlayer != -1) {
+	if (iHookedPlayer != -1 && g_Config.m_SvKillTakeOverTime != -1) {
 		CPlayer *pPlayer = GameServer()->m_apPlayers[iHookedPlayer];
 		if (pPlayer) {
 			//if the hooker is not in the team of the hooked player, we check how long "we" hooked the hooked player already
 			if (pPlayer->GetTeam() != m_pPlayer->GetTeam() || !GameServer()->m_pController->IsTeamplay()) {
 				//if the player is hooked over 0.25 seconds, this character is "allowed" to call himself the killer of the hooked player
-				if (m_Core.m_HookTick >= Server()->TickSpeed() / 4) {
+				if (m_Core.m_HookTick >= Server()->TickSpeed() / (1000.f / (float)g_Config.m_SvKillTakeOverTime)) {
 					CCharacter* pChr = pPlayer->GetCharacter();
 					if (pChr) {
 						//if we stop hook the hooked player, we have 0 hook ticks on the target
@@ -855,6 +856,9 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 			}
 			return false;
 		}
+		
+		//this is better for grenade fng
+		if(Weapon == WEAPON_GRENADE && Dmg < g_Config.m_SvGrenadeDamageToHit) return false;
 
 		if (m_InvincibleTick == 0) {
 			Freeze(g_Config.m_SvHitFreeze);
