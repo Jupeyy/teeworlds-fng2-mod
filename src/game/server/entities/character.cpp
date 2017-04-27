@@ -111,16 +111,19 @@ void CCharacter::Destroy()
 
 void CCharacter::SetWeapon(int W)
 {
-	if(W == m_ActiveWeapon)
-		return;
-
 	if (!IsFreezed()) {
+		if (W == m_ActiveWeapon)
+			return;
+
 		m_LastWeapon = m_ActiveWeapon;
 		m_QueuedWeapon = -1;
 		m_ActiveWeapon = W;
 		GameServer()->CreateSound(m_Pos, SOUND_WEAPON_SWITCH);
 	}
 	else {
+		if (W == m_LastWeapon || W == WEAPON_NINJA)
+			return;
+
 		m_LastWeapon = W;
 		m_QueuedWeapon = -1;
 		GameServer()->CreateSoundGlobal(SOUND_WEAPON_SWITCH, m_pPlayer->GetCID());
@@ -168,7 +171,7 @@ void CCharacter::HandleFreeze()
 void CCharacter::DoWeaponSwitch()
 {
 	// make sure we can switch
-	if(m_ReloadTimer != 0 || m_QueuedWeapon == -1 || IsFreezed())
+	if(m_ReloadTimer != 0 || m_QueuedWeapon == -1)
 		return;
 
 	// switch Weapon
