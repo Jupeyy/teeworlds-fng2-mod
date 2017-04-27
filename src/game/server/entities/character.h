@@ -71,7 +71,7 @@ public:
 	bool IsAlive() const { return m_Alive; }
 	class CPlayer *GetPlayer() { return m_pPlayer; }
 
-	bool IsFreezed() const { return m_Freeze.m_ActivationTick != 0;  }
+	bool IsFreezed();
 
 	void SetKiller(int pKillerID, unsigned int pHookTicks);
 

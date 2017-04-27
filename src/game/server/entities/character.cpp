@@ -123,6 +123,7 @@ void CCharacter::SetWeapon(int W)
 	else {
 		m_LastWeapon = W;
 		m_QueuedWeapon = -1;
+		GameServer()->CreateSoundGlobal(SOUND_WEAPON_SWITCH, m_pPlayer->GetCID());
 	}
 
 	
@@ -213,6 +214,10 @@ void CCharacter::HandleWeaponSwitch()
 		m_QueuedWeapon = WantedWeapon;
 
 	DoWeaponSwitch();
+}
+
+bool CCharacter::IsFreezed(){
+	return m_Freeze.m_ActivationTick != 0 && m_Freeze.m_ActivationTick != Server()->Tick();
 }
 
 void CCharacter::FireWeapon()
@@ -407,9 +412,7 @@ bool CCharacter::GiveWeapon(int Weapon, int Ammo)
 void CCharacter::Freeze(int TimeInSec) {
 	if(!IsFreezed())m_LastWeapon = m_ActiveWeapon;
 	m_Freeze.m_ActivationTick = Server()->Tick();
-	m_Freeze.m_Duration = TimeInSec; 
-	m_ActiveWeapon = WEAPON_NINJA;
-	ResetInput();
+	m_Freeze.m_Duration = TimeInSec;
 	
 	if(g_Config.m_SvSmoothFreezeMode)
 		GameServer()->SendFakeTuningParams(m_pPlayer->GetCID());
@@ -660,6 +663,12 @@ void CCharacter::TickDefered()
 			m_SendCore = m_Core;
 			m_ReckoningCore = m_Core;
 		}
+	}
+	 
+	if(m_Freeze.m_ActivationTick != 0 && m_ActiveWeapon != WEAPON_NINJA) {
+		//do actual freezing
+		m_ActiveWeapon = WEAPON_NINJA;
+		ResetInput();
 	}
 }
 
