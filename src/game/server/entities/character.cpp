@@ -220,12 +220,12 @@ void CCharacter::HandleWeaponSwitch()
 }
 
 bool CCharacter::IsFreezed(){
-	return m_Freeze.m_ActivationTick != 0 && m_Freeze.m_ActivationTick != Server()->Tick();
+	return m_Freeze.m_ActivationTick != 0;
 }
 
 void CCharacter::FireWeapon()
 {
-	if(m_ReloadTimer != 0 || IsFreezed())
+	if(m_ReloadTimer != 0 || (IsFreezed() && m_Freeze.m_ActivationTick != Server()->Tick()))
 		return;
 
 	DoWeaponSwitch();
