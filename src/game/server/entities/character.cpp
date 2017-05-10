@@ -146,6 +146,13 @@ bool CCharacter::IsGrounded()
 
 void CCharacter::HandleFreeze()
 {
+	//we basically freeze the first tick, after we actually got shot, so all input for all players is fair(pumpnetwork is after ontick)
+	if(m_Freeze.m_ActivationTick != 0 && m_Freeze.m_ActivationTick != Server()->Tick() && m_ActiveWeapon != WEAPON_NINJA) {
+		//do actual freezing
+		m_ActiveWeapon = WEAPON_NINJA;
+		ResetInput();
+	}
+	
 	if(m_ActiveWeapon != WEAPON_NINJA || !IsAlive())
 		return;
 
@@ -666,12 +673,6 @@ void CCharacter::TickDefered()
 			m_SendCore = m_Core;
 			m_ReckoningCore = m_Core;
 		}
-	}
-	 
-	if(m_Freeze.m_ActivationTick != 0 && m_ActiveWeapon != WEAPON_NINJA) {
-		//do actual freezing
-		m_ActiveWeapon = WEAPON_NINJA;
-		ResetInput();
 	}
 }
 
