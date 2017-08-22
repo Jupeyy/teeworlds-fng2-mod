@@ -25,7 +25,7 @@ struct QuadroMask {
 		m_Mask[3] |= mask[3];
 	}
 
-	long long operator[](int id) {
+	long long& operator[](int id) {
 		return m_Mask[id];
 	}
 
@@ -34,9 +34,8 @@ struct QuadroMask {
 	}
 
 	QuadroMask operator=(long long mask) {
-		QuadroMask m;
-		memset(m.m_Mask, mask, sizeof(m.m_Mask));
-		return m;
+		memset(m_Mask, mask, sizeof(m_Mask));
+		return *this;
 	}
 
 	long long operator & (const QuadroMask& mask){
@@ -49,6 +48,29 @@ struct QuadroMask {
 		m_Mask[2] ^= mask;
 		m_Mask[3] ^= mask;
 		return *this;
+	}
+	
+	int Count() {
+		int Counter = 0;
+		for(int i = 0; i < 4; ++i){
+			for(int n = 0; n < 64; ++n){
+				if((m_Mask[i] & (1ll << n)) != 0) 
+					++Counter;
+			}		
+		}
+		
+		return Counter;
+	}
+	
+	int PositionOfNonZeroBit(int Offset){
+		for(int i = (Offset/64); i < 4; ++i){
+			for(int n = (Offset%64); n < 64; ++n){
+				if((m_Mask[i] & (1ll << n)) != 0){
+					return i * 64 + n;
+				}
+			}		
+		}
+		return -1;
 	}
 };
 #endif
