@@ -20,7 +20,6 @@
 #include "laserText.h"
 #include "gameserver_config.h"
 
-#include <string>
 #include <vector>
 
 enum
@@ -114,8 +113,8 @@ class CCharacter *CGameContext::GetPlayerChar(int ClientID)
 
 void CGameContext::MakeLaserTextPoints(vec2 pPos, int pOwner, int pPoints){
 	char text[10];
-	if(pPoints >= 0) sprintf(text, "+%d", pPoints);
-	else sprintf(text, "%d", pPoints);
+	if(pPoints >= 0) str_format(text, 10, "+%d", pPoints);
+	else str_format(text, 10, "%d", pPoints);
 	pPos.y -= 20.0 * 2.5;
 	new CLaserText(&m_World, pPos, pOwner, Server()->TickSpeed() * 3, text, (int)(strlen(text)));
 }
@@ -1080,6 +1079,8 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		{
 			pPlayer->m_ClientVersion = CPlayer::CLIENT_VERSION_DDNET;
 			int Version = pUnpacker->GetInt();
+			pPlayer->m_DDNetVersion = Version;
+			Server()->SetClientVersion(ClientID, Version);
 			if (pUnpacker->Error() || Version < 217)
 			{
 				pPlayer->m_ClientVersion = CPlayer::CLIENT_VERSION_NORMAL;
@@ -1251,7 +1252,7 @@ void CGameContext::CmdStats(CGameContext* pContext, int pClientID, const char** 
 	
 	char buff[600];
 
-	sprintf(buff, "╔═════════ Statistics ═════════\n"
+	str_format(buff, 600, "╔═════════ Statistics ═════════\n"
 		"║\n"
 		"║Kills(Weapon): %d\n"
 		"║Hits(By Opponent's Weapon): %d\n"
@@ -1318,7 +1319,7 @@ void CGameContext::CmdWhisper(CGameContext* pContext, int pClientID, const char*
 			if (length > max + 1 && is_whitespace((*pArgs)[max])) {
 				char buff[257];
 				if(pContext->m_apPlayers[maxPlayerID]->m_ClientVersion != CPlayer::CLIENT_VERSION_DDNET) {
-					sprintf(buff, "[← %s] %s", pContext->Server()->ClientName(pClientID), (*pArgs + max + 1));
+					str_format(buff, 256, "[← %s] %s", pContext->Server()->ClientName(pClientID), (*pArgs + max + 1));
 					pContext->SendChatTarget(maxPlayerID, buff);
 				}
 				else {
@@ -1327,7 +1328,7 @@ void CGameContext::CmdWhisper(CGameContext* pContext, int pClientID, const char*
 				
 
 				if(p->m_ClientVersion != CPlayer::CLIENT_VERSION_DDNET) {
-					sprintf(buff, "[→ %s] %s", pContext->Server()->ClientName(maxPlayerID), (*pArgs + max + 1));
+					str_format(buff, 256, "[→ %s] %s", pContext->Server()->ClientName(maxPlayerID), (*pArgs + max + 1));
 					pContext->SendChatTarget(pClientID, buff);
 				}
 				else {
@@ -1353,7 +1354,7 @@ void CGameContext::CmdConversation(CGameContext* pContext, int pClientID, const 
 			if (strcmp(pContext->Server()->ClientName(p->m_WhisperPlayer.PlayerID), p->m_WhisperPlayer.PlayerName) == 0) {
 				char buff[257];
 				if(pContext->m_apPlayers[p->m_WhisperPlayer.PlayerID]->m_ClientVersion != CPlayer::CLIENT_VERSION_DDNET) {
-					sprintf(buff, "[← %s] %s", pContext->Server()->ClientName(pClientID), (*pArgs));
+					str_format(buff, 256, "[← %s] %s", pContext->Server()->ClientName(pClientID), (*pArgs));
 					pContext->SendChatTarget(p->m_WhisperPlayer.PlayerID, buff);
 				}
 				else {
@@ -1361,7 +1362,7 @@ void CGameContext::CmdConversation(CGameContext* pContext, int pClientID, const 
 				}
 
 				if(p->m_ClientVersion != CPlayer::CLIENT_VERSION_DDNET) {
-					sprintf(buff, "[→ %s] %s", pContext->Server()->ClientName(p->m_WhisperPlayer.PlayerID), (*pArgs));
+					str_format(buff, 256, "[→ %s] %s", pContext->Server()->ClientName(p->m_WhisperPlayer.PlayerID), (*pArgs));
 					pContext->SendChatTarget(pClientID, buff);
 				}
 				else {
@@ -1382,7 +1383,7 @@ void CGameContext::CmdHelp(CGameContext* pContext, int pClientID, const char** p
 		sServerCommand* pCmd = pContext->FindCommand(pArgs[0]);
 		if(pCmd) {
 			char buff[200];
-			sprintf(buff, "[/%s] %s", pCmd->m_Cmd, pCmd->m_Desc);
+			str_format(buff, 200, "[/%s] %s", pCmd->m_Cmd, pCmd->m_Desc);
 			pContext->SendChatTarget(pClientID, buff);
 		}
 	}
@@ -1392,7 +1393,7 @@ void CGameContext::CmdHelp(CGameContext* pContext, int pClientID, const char** p
 		sServerCommand* pCmd = pContext->m_FirstServerCommand;
 		char buff[200];
 		while(pCmd){
-			sprintf(buff, "/%s %s", pCmd->m_Cmd, (pCmd->m_ArgFormat) ? pCmd->m_ArgFormat : "");
+			str_format(buff, 200, "/%s %s", pCmd->m_Cmd, (pCmd->m_ArgFormat) ? pCmd->m_ArgFormat : "");
 			pContext->SendChatTarget(pClientID, buff);
 			pCmd = pCmd->m_NextCommand;			
 		}
@@ -2114,32 +2115,32 @@ void CGameContext::SendRoundStats() {
 		SendChatTarget(i, "╔═════════ Statistics ═════════");
 		SendChatTarget(i, "║");
 
-		sprintf(buff, "║Kills(Weapon): %d", p->m_kills);
+		str_format(buff, 300, "║Kills(Weapon): %d", p->m_kills);
 		SendChatTarget(i, buff);
-		sprintf(buff, "║Hits(By Opponent's Weapon): %d", p->m_hits);
+		str_format(buff, 300, "║Hits(By Opponent's Weapon): %d", p->m_hits);
 		SendChatTarget(i, buff);
 		SendChatTarget(i, "║");
-		sprintf(buff, "║Kills/Deaths: %4.2f", (p->m_hits != 0) ? (float)((float)p->m_kills / (float)p->m_hits) : (float)p->m_kills);
+		str_format(buff, 300, "║Kills/Deaths: %4.2f", (p->m_hits != 0) ? (float)((float)p->m_kills / (float)p->m_hits) : (float)p->m_kills);
 		SendChatTarget(i, buff);		
-		sprintf(buff, "║Shots | Kills/Shots: %d | %3.1f%%\n", p->m_shots, ((float)p->m_kills / (float)(p->m_shots == 0 ? 1: p->m_shots)) * 100.f);
+		str_format(buff, 300, "║Shots | Kills/Shots: %d | %3.1f%%\n", p->m_shots, ((float)p->m_kills / (float)(p->m_shots == 0 ? 1: p->m_shots)) * 100.f);
 		SendChatTarget(i, buff);
 		SendChatTarget(i, "║");
 		SendChatTarget(i, "╠══════════ Spikes ══════════");
 		SendChatTarget(i, "║");
-		sprintf(buff, "║Kills(Normal spikes): %d", p->m_grabs_normal);
+		str_format(buff, 300, "║Kills(Normal spikes): %d", p->m_grabs_normal);
 		SendChatTarget(i, buff);
-		sprintf(buff, "║Kills(Team spikes): %d", p->m_grabs_team);
+		str_format(buff, 300, "║Kills(Team spikes): %d", p->m_grabs_team);
 		SendChatTarget(i, buff);
-		sprintf(buff, "║Kills(Golden spikes): %d", p->m_grabs_gold);
+		str_format(buff, 300, "║Kills(Golden spikes): %d", p->m_grabs_gold);
 		SendChatTarget(i, buff);
-		sprintf(buff, "║Kills(False spikes): %d", p->m_grabs_false);
+		str_format(buff, 300, "║Kills(False spikes): %d", p->m_grabs_false);
 		SendChatTarget(i, buff);
-		sprintf(buff, "║Spike Deaths(while freezed): %d", p->m_deaths);
+		str_format(buff, 300, "║Spike Deaths(while freezed): %d", p->m_deaths);
 		SendChatTarget(i, buff);
 		SendChatTarget(i, "║");
 		SendChatTarget(i, "╠═══════════ Misc ══════════");
 		SendChatTarget(i, "║");
-		sprintf(buff, "║Teammates unfreezed: %d", p->m_unfreeze);
+		str_format(buff, 300, "║Teammates unfreezed: %d", p->m_unfreeze);
 		SendChatTarget(i, buff);
 		SendChatTarget(i, "║");
 		SendChatTarget(i, "╚══════════════════════════");
@@ -2170,7 +2171,7 @@ void CGameContext::SendRoundStats() {
 	if (bestKDCount > 0) {
 		char buff[300];
 		if(bestKDCount == 1){
-			sprintf(buff, "Best Player: %s with a K/D of %.3f", Server()->ClientName(bestKDPlayerIDs.PositionOfNonZeroBit(0)), bestKD);
+			str_format(buff, 300, "Best Player: %s with a K/D of %.3f", Server()->ClientName(bestKDPlayerIDs.PositionOfNonZeroBit(0)), bestKD);
 		} else {
 			//only allow upto 10 players at once(else we risk buffer overflow)
 			int curPlayerCount = 0;
@@ -2181,17 +2182,19 @@ void CGameContext::SendRoundStats() {
 			int CharacterOffset = 0;
 			while((curPlayerIDOffset = bestKDPlayerIDs.PositionOfNonZeroBit(curPlayerIDOffset + 1)) != -1){
 				if(curPlayerCount > 0){					
-					CharacterOffset += sprintf((PlayerNames + CharacterOffset), ", ");
+					str_format((PlayerNames + CharacterOffset), 300 - CharacterOffset,  ", ");
+					CharacterOffset = str_length(PlayerNames);
 				}
-				CharacterOffset += sprintf((PlayerNames + CharacterOffset), "%s", Server()->ClientName(curPlayerIDOffset));
+				str_format((PlayerNames + CharacterOffset), 300 - CharacterOffset, "%s", Server()->ClientName(curPlayerIDOffset));
+				CharacterOffset = str_length(PlayerNames);
 				++curPlayerCount;
 				
 				if(curPlayerCount > 10) break;
 			}
 			
-			if(curPlayerCount > 10) sprintf((PlayerNames + CharacterOffset), " and others");
+			if(curPlayerCount > 10) str_format((PlayerNames + CharacterOffset), 300 - CharacterOffset, " and others");
 			
-			sprintf(buff, "Best Players: %s with a K/D of %.3f", PlayerNames, bestKD);
+			str_format(buff, 300, "Best Players: %s with a K/D of %.3f", PlayerNames, bestKD);
 		}
 		for (int i = 0; i < MAX_CLIENTS; ++i) {
 			CPlayer* p = m_apPlayers[i];
@@ -2204,7 +2207,7 @@ void CGameContext::SendRoundStats() {
 	if (bestAccuracyCount > 0) {
 		char buff[300];
 		if (bestAccuracyCount == 1) {
-			sprintf(buff, "Best accuracy: %s with %3.1f%%", Server()->ClientName(bestAccuarcyPlayerIDs.PositionOfNonZeroBit(0)), bestAccuracy * 100.f);
+			str_format(buff, 300, "Best accuracy: %s with %3.1f%%", Server()->ClientName(bestAccuarcyPlayerIDs.PositionOfNonZeroBit(0)), bestAccuracy * 100.f);
 		}
 		else {
 			//only allow upto 10 players at once(else we risk buffer overflow)
@@ -2216,17 +2219,19 @@ void CGameContext::SendRoundStats() {
 			int CharacterOffset = 0;
 			while ((curPlayerIDOffset = bestAccuarcyPlayerIDs.PositionOfNonZeroBit(curPlayerIDOffset + 1)) != -1) {
 				if (curPlayerCount > 0) {
-					CharacterOffset += sprintf((PlayerNames + CharacterOffset), ", ");
+					str_format((PlayerNames + CharacterOffset), 300 - CharacterOffset, ", ");
+					CharacterOffset = str_length(PlayerNames);
 				}
-				CharacterOffset += sprintf((PlayerNames + CharacterOffset), "%s", Server()->ClientName(curPlayerIDOffset));
+				str_format((PlayerNames + CharacterOffset), 300 - CharacterOffset, "%s", Server()->ClientName(curPlayerIDOffset));
+				CharacterOffset = str_length(PlayerNames);
 				++curPlayerCount;
 
 				if (curPlayerCount > 10) break;
 			}
 
-			if (curPlayerCount > 10) sprintf((PlayerNames + CharacterOffset), " and others");
+			if (curPlayerCount > 10) str_format((PlayerNames + CharacterOffset), 300 - CharacterOffset, " and others");
 
-			sprintf(buff, "Best accuracy: %s with %3.1f%%", PlayerNames, bestAccuracy * 100.f);
+			str_format(buff, 300, "Best accuracy: %s with %3.1f%%", PlayerNames, bestAccuracy * 100.f);
 		}
 		for (int i = 0; i < MAX_CLIENTS; ++i) {
 			CPlayer* p = m_apPlayers[i];
