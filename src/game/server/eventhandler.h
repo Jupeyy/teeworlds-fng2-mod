@@ -50,6 +50,10 @@ struct QuadroMask {
 		return *this;
 	}
 	
+	bool operator==(QuadroMask& q){
+		return m_Mask[0] == q.m_Mask[0] && m_Mask[1] == q.m_Mask[1] && m_Mask[2] == q.m_Mask[2] && m_Mask[3] == q.m_Mask[3];
+	}
+	
 	int Count() {
 		int Counter = 0;
 		for(int i = 0; i < 4; ++i){
@@ -71,6 +75,10 @@ struct QuadroMask {
 			}		
 		}
 		return -1;
+	}
+	
+	void SetBitOfPosition(int Pos){
+		m_Mask[Pos / 64] |= 1 << (Pos % 64);
 	}
 };
 #endif
