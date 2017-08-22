@@ -1253,10 +1253,11 @@ void CGameContext::CmdStats(CGameContext* pContext, int pClientID, const char** 
 
 	sprintf(buff, "╔═════════ Statistics ═════════\n"
 		"║\n"
-		"║Kills(Laser): %d\n"
-		"║Hits(By Opponent's Laser): %d\n"
+		"║Kills(Weapon): %d\n"
+		"║Hits(By Opponent's Weapon): %d\n"
 		"║\n"
 		"║Kills/Deaths: %4.2f\n"
+		"║Shots | Kills/Shots: %d | %3.1f%%\n"
 		"║\n"
 		"╠══════════ Spikes ══════════\n"
 		"║\n"
@@ -1270,7 +1271,7 @@ void CGameContext::CmdStats(CGameContext* pContext, int pClientID, const char** 
 		"║\n"
 		"║Teammates unfreezed: %d\n"
 		"║\n"
-		"╚══════════════════════════\n", p->m_kills, p->m_hits, (p->m_hits != 0) ? (float)((float)p->m_kills / (float)p->m_hits) : (float)p->m_kills, p->m_grabs_normal, p->m_grabs_team, p->m_grabs_gold, p->m_grabs_false, p->m_deaths, p->m_unfreeze);
+		"╚══════════════════════════\n", p->m_kills, p->m_hits, (p->m_hits != 0) ? (float)((float)p->m_kills / (float)p->m_hits) : (float)p->m_kills, p->m_shots, ((float)p->m_kills / (float)(p->m_shots == 0 ? 1: p->m_shots)) * 100.f, p->m_grabs_normal, p->m_grabs_team, p->m_grabs_gold, p->m_grabs_false, p->m_deaths, p->m_unfreeze);
 
 	CNetMsg_Sv_Motd Msg;
 	Msg.m_pMessage = buff;
@@ -2101,21 +2102,26 @@ const char *CGameContext::NetVersion() { return GAME_NETVERSION; }
 
 
 void CGameContext::SendRoundStats() {
-	char buff[200];
+	char buff[300];
 	float bestKD = 0;
-	int bestKDPlayerID = -1;
+	float bestAccuracy = 0;
+	QuadroMask bestKDPlayerIDs(0);
+	QuadroMask bestAccuarcyPlayerIDs(0);
+	
 	for (int i = 0; i < MAX_CLIENTS; ++i) {
 		CPlayer* p = m_apPlayers[i];
 		if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
 		SendChatTarget(i, "╔═════════ Statistics ═════════");
 		SendChatTarget(i, "║");
 
-		sprintf(buff, "║Kills(Laser): %d", p->m_kills);
+		sprintf(buff, "║Kills(Weapon): %d", p->m_kills);
 		SendChatTarget(i, buff);
-		sprintf(buff, "║Hits(By Opponent's Laser): %d", p->m_hits);
+		sprintf(buff, "║Hits(By Opponent's Weapon): %d", p->m_hits);
 		SendChatTarget(i, buff);
 		SendChatTarget(i, "║");
 		sprintf(buff, "║Kills/Deaths: %4.2f", (p->m_hits != 0) ? (float)((float)p->m_kills / (float)p->m_hits) : (float)p->m_kills);
+		SendChatTarget(i, buff);		
+		sprintf(buff, "║Shots | Kills/Shots: %d | %3.1f%%\n", p->m_shots, ((float)p->m_kills / (float)(p->m_shots == 0 ? 1: p->m_shots)) * 100.f);
 		SendChatTarget(i, buff);
 		SendChatTarget(i, "║");
 		SendChatTarget(i, "╠══════════ Spikes ══════════");
@@ -2140,16 +2146,88 @@ void CGameContext::SendRoundStats() {
 		SendChatTarget(i, "Press F1 to view stats now!!");
 
 		float kd = ((p->m_hits != 0) ? (float)((float)p->m_kills / (float)p->m_hits) : (float)p->m_kills);
-		if (bestKD <  kd) {
+		if (bestKD < kd) {
 			bestKD = kd;
-			bestKDPlayerID = i;
+			bestKDPlayerIDs = 0;
+			bestKDPlayerIDs[i / 64] = 1 << (i % 64);
+		}
+		else if (bestKD == kd) {
+			bestKDPlayerIDs[i / 64] |= 1 << (i % 64);
+		}
+
+		float accuracy = (float)p->m_kills / (float)(p->m_shots == 0 ? 1 : p->m_shots);
+		if (bestAccuracy < accuracy) {
+			bestAccuracy = accuracy;
+			bestAccuarcyPlayerIDs = 0;
+			bestAccuarcyPlayerIDs[i / 64] = 1 << (i % 64);
+		}
+		else if (bestAccuracy == accuracy) {
+			bestAccuarcyPlayerIDs[i / 64] |= 1 << (i % 64);
 		}
 	}
 
-	if (bestKDPlayerID != -1) {
-		char buff[200];
-		sprintf(buff, "Best Player: %s with a K/D of %.3f", Server()->ClientName(bestKDPlayerID), bestKD);
+	int bestKDCount = bestKDPlayerIDs.Count();
+	if (bestKDCount > 0) {
+		char buff[300];
+		if(bestKDCount == 1){
+			sprintf(buff, "Best Player: %s with a K/D of %.3f", Server()->ClientName(bestKDPlayerIDs.PositionOfNonZeroBit(0)), bestKD);
+		} else {
+			//only allow upto 10 players at once(else we risk buffer overflow)
+			int curPlayerCount = 0;
+			int curPlayerIDOffset = -1;
+			
+			char PlayerNames[300];
+			
+			int CharacterOffset = 0;
+			while((curPlayerIDOffset = bestKDPlayerIDs.PositionOfNonZeroBit(curPlayerIDOffset + 1)) != -1){
+				if(curPlayerCount > 0){					
+					CharacterOffset += sprintf((PlayerNames + CharacterOffset), ", ");
+				}
+				CharacterOffset += sprintf((PlayerNames + CharacterOffset), "%s", Server()->ClientName(curPlayerIDOffset));
+				++curPlayerCount;
+				
+				if(curPlayerCount > 10) break;
+			}
+			
+			if(curPlayerCount > 10) sprintf((PlayerNames + CharacterOffset), " and others");
+			
+			sprintf(buff, "Best Players: %s with a K/D of %.3f", PlayerNames, bestKD);
+		}
+		for (int i = 0; i < MAX_CLIENTS; ++i) {
+			CPlayer* p = m_apPlayers[i];
+			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
+			SendChatTarget(i, buff);
+		}
+	}
 
+	int bestAccuracyCount = bestAccuarcyPlayerIDs.Count();
+	if (bestAccuracyCount > 0) {
+		char buff[300];
+		if (bestAccuracyCount == 1) {
+			sprintf(buff, "Best accuracy: %s with %3.1f%%", Server()->ClientName(bestAccuarcyPlayerIDs.PositionOfNonZeroBit(0)), bestAccuracy * 100.f);
+		}
+		else {
+			//only allow upto 10 players at once(else we risk buffer overflow)
+			int curPlayerCount = 0;
+			int curPlayerIDOffset = -1;
+
+			char PlayerNames[300];
+
+			int CharacterOffset = 0;
+			while ((curPlayerIDOffset = bestAccuarcyPlayerIDs.PositionOfNonZeroBit(curPlayerIDOffset + 1)) != -1) {
+				if (curPlayerCount > 0) {
+					CharacterOffset += sprintf((PlayerNames + CharacterOffset), ", ");
+				}
+				CharacterOffset += sprintf((PlayerNames + CharacterOffset), "%s", Server()->ClientName(curPlayerIDOffset));
+				++curPlayerCount;
+
+				if (curPlayerCount > 10) break;
+			}
+
+			if (curPlayerCount > 10) sprintf((PlayerNames + CharacterOffset), " and others");
+
+			sprintf(buff, "Best accuracy: %s with %3.1f%%", PlayerNames, bestAccuracy * 100.f);
+		}
 		for (int i = 0; i < MAX_CLIENTS; ++i) {
 			CPlayer* p = m_apPlayers[i];
 			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
