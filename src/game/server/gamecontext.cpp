@@ -1254,19 +1254,19 @@ void CGameContext::CmdStats(CGameContext* pContext, int pClientID, const char** 
 
 	str_format(buff, 600, "╔═════════ Statistics ═════════\n"
 		"║\n"
-		"║Kills(Weapon): %d\n"
-		"║Hits(By Opponent's Weapon): %d\n"
+		"║Kills(weapon): %d\n"
+		"║Hits(By opponent's weapon): %d\n"
 		"║\n"
 		"║Kills/Deaths: %4.2f\n"
 		"║Shots | Kills/Shots: %d | %3.1f%%\n"
 		"║\n"
 		"╠══════════ Spikes ══════════\n"
 		"║\n"
-		"║Kills(Normal spikes): %d\n"
-		"║Kills(Team spikes): %d\n"
-		"║Kills(Golden spikes): %d\n"
-		"║Kills(False spikes): %d\n"
-		"║Spike Deaths(while freezed): %d\n"
+		"║Kills(normal spikes): %d\n"
+		"║Kills(team spikes): %d\n"
+		"║Kills(golden spikes): %d\n"
+		"║Kills(false spikes): %d\n"
+		"║Spike deaths(while freezed): %d\n"
 		"║\n"
 		"╠═══════════ Misc ══════════\n"
 		"║\n"
@@ -2115,9 +2115,9 @@ void CGameContext::SendRoundStats() {
 		SendChatTarget(i, "╔═════════ Statistics ═════════");
 		SendChatTarget(i, "║");
 
-		str_format(buff, 300, "║Kills(Weapon): %d", p->m_kills);
+		str_format(buff, 300, "║Kills(weapon): %d", p->m_kills);
 		SendChatTarget(i, buff);
-		str_format(buff, 300, "║Hits(By Opponent's Weapon): %d", p->m_hits);
+		str_format(buff, 300, "║Hits(By opponent's weapon): %d", p->m_hits);
 		SendChatTarget(i, buff);
 		SendChatTarget(i, "║");
 		str_format(buff, 300, "║Kills/Deaths: %4.2f", (p->m_hits != 0) ? (float)((float)p->m_kills / (float)p->m_hits) : (float)p->m_kills);
@@ -2127,15 +2127,15 @@ void CGameContext::SendRoundStats() {
 		SendChatTarget(i, "║");
 		SendChatTarget(i, "╠══════════ Spikes ══════════");
 		SendChatTarget(i, "║");
-		str_format(buff, 300, "║Kills(Normal spikes): %d", p->m_grabs_normal);
+		str_format(buff, 300, "║Kills(normal spikes): %d", p->m_grabs_normal);
 		SendChatTarget(i, buff);
-		str_format(buff, 300, "║Kills(Team spikes): %d", p->m_grabs_team);
+		str_format(buff, 300, "║Kills(team spikes): %d", p->m_grabs_team);
 		SendChatTarget(i, buff);
-		str_format(buff, 300, "║Kills(Golden spikes): %d", p->m_grabs_gold);
+		str_format(buff, 300, "║Kills(golden spikes): %d", p->m_grabs_gold);
 		SendChatTarget(i, buff);
-		str_format(buff, 300, "║Kills(False spikes): %d", p->m_grabs_false);
+		str_format(buff, 300, "║Kills(false spikes): %d", p->m_grabs_false);
 		SendChatTarget(i, buff);
-		str_format(buff, 300, "║Spike Deaths(while freezed): %d", p->m_deaths);
+		str_format(buff, 300, "║Spike deaths(while freezed): %d", p->m_deaths);
 		SendChatTarget(i, buff);
 		SendChatTarget(i, "║");
 		SendChatTarget(i, "╠═══════════ Misc ══════════");
@@ -2171,7 +2171,7 @@ void CGameContext::SendRoundStats() {
 	if (bestKDCount > 0) {
 		char buff[300];
 		if(bestKDCount == 1){
-			str_format(buff, 300, "Best Player: %s with a K/D of %.3f", Server()->ClientName(bestKDPlayerIDs.PositionOfNonZeroBit(0)), bestKD);
+			str_format(buff, 300, "Best player: %s with a K/D of %.3f", Server()->ClientName(bestKDPlayerIDs.PositionOfNonZeroBit(0)), bestKD);
 		} else {
 			//only allow upto 10 players at once(else we risk buffer overflow)
 			int curPlayerCount = 0;
@@ -2194,7 +2194,7 @@ void CGameContext::SendRoundStats() {
 			
 			if(curPlayerCount > 10) str_format((PlayerNames + CharacterOffset), 300 - CharacterOffset, " and others");
 			
-			str_format(buff, 300, "Best Players: %s with a K/D of %.3f", PlayerNames, bestKD);
+			str_format(buff, 300, "Best players: %s with a K/D of %.3f", PlayerNames, bestKD);
 		}
 		for (int i = 0; i < MAX_CLIENTS; ++i) {
 			CPlayer* p = m_apPlayers[i];
