@@ -150,6 +150,7 @@ function build(settings)
 
 	if config.compiler.driver == "cl" then
 		settings.cc.flags:Add("/wd4244")
+		settings.cc.flags:Add("/utf-8")
 	else
 		settings.cc.flags:Add("-Wall", "-fno-exceptions")
 		if family == "windows" then
