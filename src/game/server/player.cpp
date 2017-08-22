@@ -171,11 +171,20 @@ void CPlayer::Snap(int SnappingClient)
 	StrToInts(&pClientInfo->m_Name0, 4, Server()->ClientName(m_ClientID));
 	StrToInts(&pClientInfo->m_Clan0, 3, Server()->ClientClan(m_ClientID));
 	pClientInfo->m_Country = Server()->ClientCountry(m_ClientID);
-	StrToInts(&pClientInfo->m_Skin0, 6, m_TeeInfos.m_SkinName);
-	pClientInfo->m_UseCustomColor = m_TeeInfos.m_UseCustomColor;
-	pClientInfo->m_ColorBody = m_TeeInfos.m_ColorBody;
-	pClientInfo->m_ColorFeet = m_TeeInfos.m_ColorFeet;
-
+	if(GameServer()->m_pController->UseFakeTeams() && m_pCharacter && m_pCharacter->IsFreezed()){
+		StrToInts(&pClientInfo->m_Skin0, 6, "pinky");
+		pClientInfo->m_UseCustomColor = m_TeeInfos.m_UseCustomColor;
+		pClientInfo->m_ColorBody = 0;
+		pClientInfo->m_ColorFeet = m_TeeInfos.m_ColorFeet;
+	} 
+	else 
+	{
+		StrToInts(&pClientInfo->m_Skin0, 6, m_TeeInfos.m_SkinName);
+		pClientInfo->m_UseCustomColor = m_TeeInfos.m_UseCustomColor;
+		pClientInfo->m_ColorBody = m_TeeInfos.m_ColorBody;
+		pClientInfo->m_ColorFeet = m_TeeInfos.m_ColorFeet;
+	}
+	
 	CNetObj_PlayerInfo *pPlayerInfo = static_cast<CNetObj_PlayerInfo *>(Server()->SnapNewItem(NETOBJTYPE_PLAYERINFO, ClientID, sizeof(CNetObj_PlayerInfo)));
 	if(!pPlayerInfo)
 		return;
@@ -183,8 +192,8 @@ void CPlayer::Snap(int SnappingClient)
 	pPlayerInfo->m_Latency = SnappingClient == -1 ? m_Latency.m_Min : GameServer()->m_apPlayers[SnappingClient]->m_aActLatency[m_ClientID];
 	pPlayerInfo->m_Local = 0;
 	pPlayerInfo->m_ClientID = ClientID;
-	pPlayerInfo->m_Score = m_Score;
-	pPlayerInfo->m_Team = m_Team;
+	pPlayerInfo->m_Score = m_Score + ((GameServer()->m_pController->UseFakeTeams() && !GameServer()->m_pController->IsGameOver()) ? (GetTeam() * 10000) : 0);
+	pPlayerInfo->m_Team = (!GameServer()->m_pController->UseFakeTeams() || m_Team == TEAM_SPECTATORS) ? m_Team : 0;
 
 	if(m_ClientID == SnappingClient)
 		pPlayerInfo->m_Local = 1;
