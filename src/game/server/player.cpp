@@ -32,6 +32,8 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 	m_selfkills = 0;
 	m_teamkills = 0;
 	m_unfreeze = 0;
+	
+	m_shots = 0;
 
 	m_ChatSpamCount = 0;
 	
@@ -388,6 +390,8 @@ void CPlayer::ResetStats(){
 	m_selfkills = 0;
 	m_teamkills = 0;
 	m_unfreeze = 0;
+	
+	m_shots = 0;
 }
 
 bool CPlayer::AddSnappingClient(int RealID, float Distance, char ClientVersion, int& pId) {

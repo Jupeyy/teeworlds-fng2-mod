@@ -43,16 +43,18 @@ public:
 	virtual void ResetStats();
 	
 	//score things
-	int m_kills; //kills made by laser
+	int m_kills; //kills made by weapon
 	int m_grabs_normal; //kills made by grabbing oponents into spikes - normal spikes
 	int m_grabs_team; //kills made by grabbing oponents into spikes - team spikes
 	int m_grabs_false; //kills made by grabbing oponents into spikes - oponents spikes
 	int m_grabs_gold; //kills made by grabbing oponents into spikes - gold spikes
 	int m_deaths; //death by spikes -- we don't make a difference of the spike types here
-	int m_hits; //hits by oponents laser
+	int m_hits; //hits by oponents weapon
 	int m_selfkills;
 	int m_teamkills;
 	int m_unfreeze;
+	
+	int m_shots; //the shots a player made
 
 	//client version
 	char m_ClientVersion;
