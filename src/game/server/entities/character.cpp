@@ -62,7 +62,6 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 {
 	m_Freeze.m_ActivationTick = 0;
 
-	m_InvincibleTick = 0;
 	m_Killer.m_KillerID = -1;
 	m_Killer.m_uiKillerHookTicks = 0;
 
@@ -97,6 +96,9 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 		m_ActiveWeapon = WEAPON_HAMMER;
 	else if (m_aWeapons[WEAPON_GUN].m_Got)
 		m_ActiveWeapon = WEAPON_GUN;
+
+	m_InvincibleTick = Server()->TickSpeed()*0.35f;
+	m_SpawnTick = Server()->Tick();
 
 	return true;
 }
@@ -251,7 +253,7 @@ void CCharacter::FireWeapon()
 	if(FullAuto && (m_LatestInput.m_Fire&1) && m_aWeapons[m_ActiveWeapon].m_Ammo)
 		WillFire = true;
 
-	if(!WillFire)
+	if(!WillFire || (Server()->Tick() < m_SpawnTick + Server()->TickSpeed()*0.35f))
 		return;
 
 	// check for ammo
@@ -339,6 +341,7 @@ void CCharacter::FireWeapon()
 
 		case WEAPON_GRENADE:
 		{
+			++m_pPlayer->m_shots;
 			CProjectile *pProj = new CProjectile(GameWorld(), WEAPON_GRENADE,
 				m_pPlayer->GetCID(),
 				ProjStartPos,
@@ -351,6 +354,7 @@ void CCharacter::FireWeapon()
 
 		case WEAPON_RIFLE:
 		{
+			++m_pPlayer->m_shots;
 			new CLaser(GameWorld(), m_Pos, Direction, GameServer()->Tuning()->m_LaserReach, m_pPlayer->GetCID());
 			GameServer()->CreateSound(m_Pos, SOUND_RIFLE_FIRE);
 		} break;

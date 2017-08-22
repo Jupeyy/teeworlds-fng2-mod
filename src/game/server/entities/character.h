@@ -98,6 +98,7 @@ private:
 	} m_aWeapons[NUM_WEAPONS];
 
 	int m_InvincibleTick;
+	int m_SpawnTick;
 
 	int m_ActiveWeapon;
 	int m_LastWeapon;
