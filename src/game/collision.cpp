@@ -58,6 +58,12 @@ void CCollision::Init(class CLayers *pLayers)
 		case TILE_SPIKE_GOLD:
 			m_pTiles[i].m_Index = COLFLAG_SPIKE_GOLD;
 			break;
+		case TILE_SPIKE_GREEN:
+			m_pTiles[i].m_Index = COLFLAG_SPIKE_GREEN;
+			break;
+		case TILE_SPIKE_PURPLE:
+			m_pTiles[i].m_Index = COLFLAG_SPIKE_PURPLE;
+			break;
 		default:
 			m_pTiles[i].m_Index = 0;
 		}
