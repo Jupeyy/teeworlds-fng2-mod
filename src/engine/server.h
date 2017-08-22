@@ -87,6 +87,8 @@ public:
 	virtual void SetClientClan(int ClientID, char const *pClan) = 0;
 	virtual void SetClientCountry(int ClientID, int Country) = 0;
 	virtual void SetClientScore(int ClientID, int Score) = 0;
+	virtual void SetClientVersion(int ClientID, int Version) = 0;
+	virtual void SetClientUnknownFlags(int ClientID, int UnknownFlags) = 0;
 
 	virtual int SnapNewID() = 0;
 	virtual void SnapFreeID(int ID) = 0;

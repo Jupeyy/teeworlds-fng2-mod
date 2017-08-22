@@ -287,6 +287,8 @@ void CServer::CClient::Reset()
 	m_LastInputTick = -1;
 	m_SnapRate = CClient::SNAPRATE_INIT;
 	m_Score = 0;
+	m_Version = -1;
+	m_UnknownFlags = 0;
 }
 
 CServer::CServer() : m_DemoRecorder(&m_SnapshotDelta)
@@ -403,6 +405,20 @@ void CServer::SetClientScore(int ClientID, int Score)
 	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State < CClient::STATE_READY)
 		return;
 	m_aClients[ClientID].m_Score = Score;
+}
+
+void CServer::SetClientVersion(int ClientID, int Version)
+{
+	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State < CClient::STATE_READY)
+		return;
+	m_aClients[ClientID].m_Version = Version;
+}
+
+void CServer::SetClientUnknownFlags(int ClientID, int UnknownFlags)
+{
+	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State < CClient::STATE_READY)
+		return;
+	m_aClients[ClientID].m_UnknownFlags = UnknownFlags;
 }
 
 void CServer::Kick(int ClientID, const char *pReason)
@@ -1955,8 +1971,15 @@ void CServer::ConStatus(IConsole::IResult *pResult, void *pUser)
 			{
 				const char *pAuthStr = pThis->m_aClients[i].m_Authed == CServer::AUTHED_ADMIN ? "(Admin)" :
 										pThis->m_aClients[i].m_Authed == CServer::AUTHED_MOD ? "(Mod)" : "";
-				str_format(aBuf, sizeof(aBuf), "id=%d addr=%s name='%s' score=%d %s", i, aAddrStr,
-					pThis->m_aClients[i].m_aName, pThis->m_aClients[i].m_Score, pAuthStr);
+										
+				char pVersionStr[50];
+				if(pThis->m_aClients[i].m_Version != -1) str_format(pVersionStr, sizeof(pVersionStr), "Client Version: %d", pThis->m_aClients[i].m_Version);
+				else pVersionStr[0] = 0;
+				char pFlagsStr[50];
+				if(pThis->m_aClients[i].m_UnknownFlags != 0 && pThis->m_aClients[i].m_UnknownFlags != 0x10/*DDNet Hookcollision*/) str_format(pFlagsStr, sizeof(pFlagsStr), "Unknown Flags: %d", pThis->m_aClients[i].m_UnknownFlags);
+				else pFlagsStr[0] = 0;
+				str_format(aBuf, sizeof(aBuf), "id=%d addr=%s name='%s' score=%d %s %s %s", i, aAddrStr,
+					pThis->m_aClients[i].m_aName, pThis->m_aClients[i].m_Score, pAuthStr, pVersionStr, pFlagsStr);
 			}
 			else
 				str_format(aBuf, sizeof(aBuf), "id=%d addr=%s connecting", i, aAddrStr);

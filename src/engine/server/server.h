@@ -132,6 +132,8 @@ public:
 		char m_aClan[MAX_CLAN_LENGTH];
 		int m_Country;
 		int m_Score;
+		int m_Version;
+		int m_UnknownFlags;
 		int m_Authed;
 		int m_AuthTries;
 
@@ -183,6 +185,8 @@ public:
 	virtual void SetClientClan(int ClientID, char const *pClan);
 	virtual void SetClientCountry(int ClientID, int Country);
 	virtual void SetClientScore(int ClientID, int Score);
+	virtual void SetClientVersion(int ClientID, int Version);
+	virtual void SetClientUnknownFlags(int ClientID, int UnknownFlags);
 
 	void Kick(int ClientID, const char *pReason);
 	void KickForce(int ClientID, const char *pReason);
