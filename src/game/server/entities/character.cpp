@@ -173,6 +173,7 @@ void CCharacter::HandleFreeze()
 
 	// force freeze
 	SetWeapon(WEAPON_NINJA);
+	
 	return;
 }
 
@@ -548,11 +549,11 @@ void CCharacter::Tick()
 		Die(m_pPlayer->GetCID(), WEAPON_WORLD);
 	}
 
-	unsigned char flag = 0;
-	if ((flag |= GameServer()->Collision()->GetCollisionAt(m_Pos.x + m_ProximityRadius / 3.f, m_Pos.y - m_ProximityRadius / 3.f))& (CCollision::COLFLAG_SPIKE_NORMAL | CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_GOLD) ||
-		(flag |= GameServer()->Collision()->GetCollisionAt(m_Pos.x + m_ProximityRadius / 3.f, m_Pos.y + m_ProximityRadius / 3.f))& (CCollision::COLFLAG_SPIKE_NORMAL | CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_GOLD) ||
-		(flag |= GameServer()->Collision()->GetCollisionAt(m_Pos.x - m_ProximityRadius / 3.f, m_Pos.y - m_ProximityRadius / 3.f))& (CCollision::COLFLAG_SPIKE_NORMAL | CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_GOLD) ||
-		(flag |= GameServer()->Collision()->GetCollisionAt(m_Pos.x - m_ProximityRadius / 3.f, m_Pos.y + m_ProximityRadius / 3.f))& (CCollision::COLFLAG_SPIKE_NORMAL | CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_GOLD))
+	int flag = 0;
+	if ((flag |= GameServer()->Collision()->GetCollisionAt(m_Pos.x + m_ProximityRadius / 3.f, m_Pos.y - m_ProximityRadius / 3.f))& (CCollision::COLFLAG_SPIKE_NORMAL | CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_GOLD | CCollision::COLFLAG_SPIKE_GREEN | CCollision::COLFLAG_SPIKE_PURPLE) ||
+		(flag |= GameServer()->Collision()->GetCollisionAt(m_Pos.x + m_ProximityRadius / 3.f, m_Pos.y + m_ProximityRadius / 3.f))& (CCollision::COLFLAG_SPIKE_NORMAL | CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_GOLD | CCollision::COLFLAG_SPIKE_GREEN | CCollision::COLFLAG_SPIKE_PURPLE) ||
+		(flag |= GameServer()->Collision()->GetCollisionAt(m_Pos.x - m_ProximityRadius / 3.f, m_Pos.y - m_ProximityRadius / 3.f))& (CCollision::COLFLAG_SPIKE_NORMAL | CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_GOLD | CCollision::COLFLAG_SPIKE_GREEN | CCollision::COLFLAG_SPIKE_PURPLE) ||
+		(flag |= GameServer()->Collision()->GetCollisionAt(m_Pos.x - m_ProximityRadius / 3.f, m_Pos.y + m_ProximityRadius / 3.f))& (CCollision::COLFLAG_SPIKE_NORMAL | CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_GOLD | CCollision::COLFLAG_SPIKE_GREEN | CCollision::COLFLAG_SPIKE_PURPLE))
 	{
 		DieSpikes(m_Killer.m_KillerID, flag);
 	}
@@ -683,7 +684,7 @@ void CCharacter::TickDefered()
 void CCharacter::TickPaused()
 {
 	++m_AttackTick;
-	++m_Freeze.m_ActivationTick;
+	if(IsFreezed()) ++m_Freeze.m_ActivationTick;
 	++m_ReckoningTick;
 	if(m_LastAction != -1)
 		++m_LastAction;
@@ -744,7 +745,7 @@ void CCharacter::Die(int Killer, int Weapon)
 	GameServer()->CreateDeath(m_Pos, m_pPlayer->GetCID());
 }
 
-void CCharacter::DieSpikes(int pPlayerID, unsigned char spikes_flag) {
+void CCharacter::DieSpikes(int pPlayerID, int spikes_flag) {
 	int Weapon = 0;
 
 
@@ -752,6 +753,8 @@ void CCharacter::DieSpikes(int pPlayerID, unsigned char spikes_flag) {
 	else if (spikes_flag&CCollision::COLFLAG_SPIKE_RED)		Weapon = WEAPON_SPIKE_RED;
 	else if (spikes_flag&CCollision::COLFLAG_SPIKE_BLUE)	Weapon = WEAPON_SPIKE_BLUE;
 	else if (spikes_flag&CCollision::COLFLAG_SPIKE_GOLD)	Weapon = WEAPON_SPIKE_GOLD;
+	else if (spikes_flag&CCollision::COLFLAG_SPIKE_GREEN)	Weapon = WEAPON_SPIKE_GREEN;
+	else if (spikes_flag&CCollision::COLFLAG_SPIKE_PURPLE)	Weapon = WEAPON_SPIKE_PURPLE;
 
 	// if the player leaves the game, he will be nullptr and we handle it like a selfkill
 	if (pPlayerID == -1 || GameServer()->m_apPlayers[pPlayerID] == 0) pPlayerID = m_pPlayer->GetCID();
@@ -793,9 +796,8 @@ void CCharacter::DieSpikes(int pPlayerID, unsigned char spikes_flag) {
 				}
 
 				if (GameServer()->m_pController->IsTeamplay()) {
-					int team = GameServer()->m_apPlayers[pPlayerID]->GetTeam();
-					GameServer()->CreateSoundTeam(m_Pos, SOUND_CTF_CAPTURE, team, pPlayerID);
-					GameServer()->CreateSoundTeam(m_Pos, SOUND_CTF_GRAB_PL, (team == TEAM_BLUE) ? TEAM_RED : TEAM_BLUE, m_pPlayer->GetCID());
+					GameServer()->CreateSoundTeam(m_Pos, SOUND_CTF_CAPTURE, GameServer()->m_apPlayers[pPlayerID]->GetTeam(), pPlayerID);
+					GameServer()->CreateSoundTeam(m_Pos, SOUND_CTF_GRAB_PL, m_pPlayer->GetTeam(), m_pPlayer->GetCID());
 				} else {
 					GameServer()->CreateSoundGlobal(SOUND_CTF_CAPTURE, pPlayerID);
 					GameServer()->CreateSoundGlobal(SOUND_CTF_GRAB_PL, m_pPlayer->GetCID());			
@@ -828,9 +830,11 @@ void CCharacter::DieSpikes(int pPlayerID, unsigned char spikes_flag) {
 
 }
 
-bool CCharacter::IsFalseSpike(int Team, unsigned char spike_flag) {
-	if (Team == TEAM_BLUE && (spike_flag&CCollision::COLFLAG_SPIKE_RED) != 0) return true;
-	else if (Team == TEAM_RED && (spike_flag&CCollision::COLFLAG_SPIKE_BLUE) != 0) return true;
+bool CCharacter::IsFalseSpike(int Team, int spike_flag) {
+	if (Team == TEAM_BLUE && (spike_flag&(CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_GREEN | CCollision::COLFLAG_SPIKE_PURPLE)) != 0) return true;
+	else if (Team == TEAM_RED && (spike_flag&(CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_GREEN | CCollision::COLFLAG_SPIKE_PURPLE)) != 0) return true;
+	else if (Team == TEAM_GREEN && (spike_flag&(CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_PURPLE)) != 0) return true;
+	else if (Team == TEAM_PURPLE && (spike_flag&(CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_GREEN | CCollision::COLFLAG_SPIKE_BLUE)) != 0) return true;
 	return false;
 }
 
@@ -1001,8 +1005,10 @@ void CCharacter::Snap(int SnappingClient)
 	pCharacter->m_AmmoCount = 0;
 	pCharacter->m_Health = 0;
 	pCharacter->m_Armor = 0;
-
-	pCharacter->m_Weapon = m_ActiveWeapon;
+	
+	if(GameServer()->m_pController->UseFakeTeams() && IsFreezed()){
+		pCharacter->m_Weapon = WEAPON_GUN;
+	} else pCharacter->m_Weapon = m_ActiveWeapon;
 	pCharacter->m_AttackTick = m_AttackTick;
 
 	pCharacter->m_Direction = m_Input.m_Direction;
