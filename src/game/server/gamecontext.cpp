@@ -13,6 +13,7 @@
 #include "gamemodes/fng2solo.h"
 #include "gamemodes/fng2boom.h"
 #include "gamemodes/fng2boomsolo.h"
+#include "gamemodes/fng2_4teams.h"
 
 //other gametypes(for modding without changing original sources)
 #include "gamecontext_additional_gametypes_includes.h"
@@ -1509,7 +1510,7 @@ void CGameContext::ConSetTeam(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;
 	int ClientID = clamp(pResult->GetInteger(0), 0, (int)MAX_CLIENTS-1);
-	int Team = clamp(pResult->GetInteger(1), -1, 1);
+	int Team = pSelf->m_pController->ClampTeam(pResult->GetInteger(1));
 	int Delay = pResult->NumArguments()>2 ? pResult->GetInteger(2) : 0;
 	if(!pSelf->m_apPlayers[ClientID])
 		return;
@@ -1526,7 +1527,7 @@ void CGameContext::ConSetTeam(IConsole::IResult *pResult, void *pUserData)
 void CGameContext::ConSetTeamAll(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;
-	int Team = clamp(pResult->GetInteger(0), -1, 1);
+	int Team = pSelf->m_pController->ClampTeam(pResult->GetInteger(1));
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "All players were moved to the %s", pSelf->m_pController->GetTeamName(Team));
@@ -1550,41 +1551,10 @@ void CGameContext::ConShuffleTeams(IConsole::IResult *pResult, void *pUserData)
 	CGameContext *pSelf = (CGameContext *)pUserData;
 	if(!pSelf->m_pController->IsTeamplay())
 		return;
-
-	int CounterRed = 0;
-	int CounterBlue = 0;
-	int PlayerTeam = 0;
-	for(int i = 0; i < MAX_CLIENTS; ++i)
-		if(pSelf->m_apPlayers[i] && pSelf->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS)
-			++PlayerTeam;
-	PlayerTeam = (PlayerTeam+1)/2;
 	
 	pSelf->SendChat(-1, CGameContext::CHAT_ALL, "Teams were shuffled");
-
-	for(int i = 0; i < MAX_CLIENTS; ++i)
-	{
-		if(pSelf->m_apPlayers[i] && pSelf->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS)
-		{
-			if(CounterRed == PlayerTeam)
-				pSelf->m_apPlayers[i]->SetTeam(TEAM_BLUE, false);
-			else if(CounterBlue == PlayerTeam)
-				pSelf->m_apPlayers[i]->SetTeam(TEAM_RED, false);
-			else
-			{	
-				if(rand() % 2)
-				{
-					pSelf->m_apPlayers[i]->SetTeam(TEAM_BLUE, false);
-					++CounterBlue;
-				}
-				else
-				{
-					pSelf->m_apPlayers[i]->SetTeam(TEAM_RED, false);
-					++CounterRed;
-				}
-			}
-		}
-	}
-
+	
+	pSelf->m_pController->ShuffleTeams();
 	(void)pSelf->m_pController->CheckTeamBalance();
 }
 
@@ -1912,6 +1882,8 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 		m_pController = new CGameControllerFNG2Boom(this);
 	else if (str_comp(m_Config->m_SvGametype, "fng2boomsolo") == 0)
 		m_pController = new CGameControllerFNG2BoomSolo(this);
+	else if (str_comp(m_Config->m_SvGametype, "fng24teams") == 0)
+		m_pController = new CGameControllerFNG24Teams(this);
 	else 
 #define CONTEXT_INIT_WITHOUT_CONFIG
 #include "gamecontext_additional_gametypes.h"
@@ -2002,6 +1974,8 @@ void CGameContext::OnInit(IKernel *pKernel, IMap* pMap, CConfiguration* pConfigF
 		m_pController = new CGameControllerFNG2Boom(this, *pConfig);
 	else if (str_comp(pConfig->m_SvGametype, "fng2boomsolo") == 0)
 		m_pController = new CGameControllerFNG2BoomSolo(this, *pConfig);
+	else if (str_comp(pConfig->m_SvGametype, "fng24teams") == 0)
+		m_pController = new CGameControllerFNG24Teams(this, *pConfig);
 	else 
 #include "gamecontext_additional_gametypes.h"
 		m_pController = new CGameControllerFNG2(this, *pConfig);
@@ -2150,20 +2124,20 @@ void CGameContext::SendRoundStats() {
 		if (bestKD < kd) {
 			bestKD = kd;
 			bestKDPlayerIDs = 0;
-			bestKDPlayerIDs[i / 64] = 1 << (i % 64);
+			bestKDPlayerIDs.SetBitOfPosition(i);
 		}
 		else if (bestKD == kd) {
-			bestKDPlayerIDs[i / 64] |= 1 << (i % 64);
+			bestKDPlayerIDs.SetBitOfPosition(i);
 		}
 
 		float accuracy = (float)p->m_kills / (float)(p->m_shots == 0 ? 1 : p->m_shots);
 		if (bestAccuracy < accuracy) {
 			bestAccuracy = accuracy;
 			bestAccuarcyPlayerIDs = 0;
-			bestAccuarcyPlayerIDs[i / 64] = 1 << (i % 64);
+			bestAccuarcyPlayerIDs.SetBitOfPosition(i);
 		}
 		else if (bestAccuracy == accuracy) {
-			bestAccuarcyPlayerIDs[i / 64] |= 1 << (i % 64);
+			bestAccuarcyPlayerIDs.SetBitOfPosition(i);
 		}
 	}
 
