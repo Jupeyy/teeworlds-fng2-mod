@@ -42,6 +42,8 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 
 	m_ClientVersion = eClientVersion::CLIENT_VERSION_NORMAL;
 	
+	m_UnknownPlayerFlag = 0;
+	
 	memset(m_SnappingClients, -1, sizeof(m_SnappingClients));
 	m_SnappingClients[0].id = ClientID;
 	m_SnappingClients[0].distance = 0;
@@ -231,6 +233,12 @@ void CPlayer::OnPredictedInput(CNetObj_PlayerInput *NewInput)
 
 void CPlayer::OnDirectInput(CNetObj_PlayerInput *NewInput)
 {
+	//non standard client flag was used
+	if (NewInput->m_PlayerFlags & 0xfffffff0) {
+		m_UnknownPlayerFlag |= (NewInput->m_PlayerFlags & 0xfffffff0);
+		Server()->SetClientUnknownFlags(m_ClientID, m_UnknownPlayerFlag);
+	}
+
 	//in tournaments every other flag is disallowed
 	if (g_Config.m_SvTournamentMode == 1) {
 		if (NewInput->m_PlayerFlags & 0xfffffff0) NewInput->m_PlayerFlags &= 0xf;

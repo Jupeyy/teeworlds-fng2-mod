@@ -58,6 +58,9 @@ public:
 
 	//client version
 	char m_ClientVersion;
+	int m_DDNetVersion;
+
+	int m_UnknownPlayerFlag;
 
 	enum eClientVersion {
 		CLIENT_VERSION_NORMAL,
