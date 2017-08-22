@@ -9,6 +9,7 @@
 #include "gamecontroller.h"
 #include "gamecontext.h"
 
+#include <time.h>
 
 IGameController::IGameController(class CGameContext *pGameServer) : 
 	m_Config(g_Config)
@@ -800,4 +801,56 @@ int IGameController::ClampTeam(int Team)
 	if(IsTeamplay())
 		return Team&1;
 	return 0;
+}
+
+void IGameController::ShuffleTeams()
+{
+	srand (time(NULL));
+	QuadroMask TeamPlayers[2];
+	QuadroMask TeamPlayersAfterShuffle[2];
+	do{
+		int CounterRed = 0;
+		int CounterBlue = 0;
+		int PlayerTeam = 0;
+		TeamPlayers[0] = 0;
+		TeamPlayers[1] = 0;
+		TeamPlayersAfterShuffle[0] = 0;
+		TeamPlayersAfterShuffle[1] = 0;
+		for(int i = 0; i < MAX_CLIENTS; ++i)
+			if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS){
+				++PlayerTeam;
+				TeamPlayers[GameServer()->m_apPlayers[i]->GetTeam()].SetBitOfPosition(i);
+			}
+		PlayerTeam = (PlayerTeam+1)/2;
+
+		for(int i = 0; i < MAX_CLIENTS; ++i)
+		{
+			if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS)
+			{
+				if(CounterRed == PlayerTeam)
+					GameServer()->m_apPlayers[i]->SetTeam(TEAM_BLUE, false);
+				else if(CounterBlue == PlayerTeam)
+					GameServer()->m_apPlayers[i]->SetTeam(TEAM_RED, false);
+				else
+				{	
+					if(rand() % 2)
+					{
+						GameServer()->m_apPlayers[i]->SetTeam(TEAM_BLUE, false);
+						++CounterBlue;
+					}
+					else
+					{
+						GameServer()->m_apPlayers[i]->SetTeam(TEAM_RED, false);
+						++CounterRed;
+					}
+				}
+				
+				TeamPlayersAfterShuffle[GameServer()->m_apPlayers[i]->GetTeam()].SetBitOfPosition(i);
+			}
+		}		
+	} while ((TeamPlayers[0].Count() > 1 || TeamPlayers[1].Count() > 2) && (TeamPlayers[0] == TeamPlayersAfterShuffle[0] || TeamPlayers[0] == TeamPlayersAfterShuffle[1]));
+}
+
+bool IGameController::UseFakeTeams(){
+	return false;
 }

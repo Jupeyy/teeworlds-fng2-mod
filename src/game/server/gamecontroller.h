@@ -84,7 +84,7 @@ public:
 	void DoWarmup(int Seconds);
 	void TogglePause();
 
-	void StartRound();
+	virtual void StartRound();
 	void EndRound();
 	void ChangeMap(const char *pToMap);
 
@@ -149,8 +149,11 @@ public:
 	virtual int GetAutoTeam(int NotThisID);
 	virtual bool CanJoinTeam(int Team, int NotThisID);
 	virtual bool CheckTeamBalance();
-	bool CanChangeTeam(CPlayer *pPplayer, int JoinTeam);
-	int ClampTeam(int Team);
+	virtual bool CanChangeTeam(CPlayer *pPplayer, int JoinTeam);
+	virtual int ClampTeam(int Team);
+	
+	virtual void ShuffleTeams();
+	virtual bool UseFakeTeams();
 
 	virtual void PostReset();
 };
