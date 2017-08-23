@@ -38,3 +38,6 @@ MACRO_CONFIG_INT(SvTournamentType, sv_tournament_type, 1, 0, 3, CFGFLAG_SERVER, 
 MACRO_CONFIG_INT(SvKillTakeOverTime, sv_kill_take_over_time, 250, -1, 1250, CFGFLAG_SERVER, "The time it takes hooking a freezed player to be stated as the killer. -1: disabled (no takeovers), x: the time in milliseconds it takes to takeover")
 
 MACRO_CONFIG_INT(SvGrenadeDamageToHit, sv_grenade_damage_to_hit, 4, 0, 6, CFGFLAG_SERVER, "The damage that needs to be dealed with the grenade to freeze the opponent. 0: all shots will kill, x: damage that must be dealed to freeze the opponent")
+
+
+MACRO_CONFIG_INT(SvTrivia, sv_trivia, 1, 0, 1, CFGFLAG_SERVER, "Send trivia at round end.")
