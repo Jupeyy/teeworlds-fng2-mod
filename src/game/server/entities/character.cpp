@@ -687,7 +687,7 @@ void CCharacter::TickDefered()
 	m_pPlayer->m_Stats.m_NumTeeCollisions += m_Core.m_CoreStats.m_NumTeeCollisions;
 	mem_zero(&m_Core.m_CoreStats, sizeof(m_Core.m_CoreStats));
 	
-	if(IsFreezed()) ++m_pPlayer->m_Stats.m_NumFreezeTicks;
+	if(IsFreezed() && m_Freeze.m_ActivationTick != Server()->Tick()) ++m_pPlayer->m_Stats.m_NumFreezeTicks;
 }
 
 void CCharacter::TickPaused()
