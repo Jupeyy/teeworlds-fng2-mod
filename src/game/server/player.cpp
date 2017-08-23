@@ -22,18 +22,7 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 	m_LastActionTick = Server()->Tick();
 	m_TeamChangeTick = Server()->Tick();
 
-	m_kills = 0;
-	m_grabs_normal = 0;
-	m_grabs_team = 0;
-	m_grabs_false = 0;
-	m_grabs_gold = 0;
-	m_deaths = 0;
-	m_hits = 0;
-	m_selfkills = 0;
-	m_teamkills = 0;
-	m_unfreeze = 0;
-	
-	m_shots = 0;
+	ResetStats();
 
 	m_ChatSpamCount = 0;
 	
@@ -409,6 +398,8 @@ void CPlayer::ResetStats(){
 	m_unfreeze = 0;
 	
 	m_shots = 0;
+	
+	mem_zero(&m_Stats, sizeof(m_Stats));
 }
 
 bool CPlayer::AddSnappingClient(int RealID, float Distance, char ClientVersion, int& pId) {

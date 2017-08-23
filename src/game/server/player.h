@@ -61,6 +61,18 @@ public:
 	int m_DDNetVersion;
 
 	int m_UnknownPlayerFlag;
+	
+	struct sPlayerStats{
+		//core stats
+		int m_NumJumped;
+		float m_NumTilesMoved;
+		int m_NumHooks;
+		float m_MaxSpeed;
+		int m_NumTeeCollisions;
+		//other stats
+		int m_NumFreezeTicks;
+		int m_NumEmotes;
+	} m_Stats;
 
 	enum eClientVersion {
 		CLIENT_VERSION_NORMAL,
