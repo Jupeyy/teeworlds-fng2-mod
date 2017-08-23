@@ -72,6 +72,8 @@ void CCharacterCore::Reset()
 	m_HookedPlayer = -1;
 	m_Jumped = 0;
 	m_TriggeredEvents = 0;
+	
+	mem_zero(&m_CoreStats, sizeof(m_CoreStats));
 }
 
 void CCharacterCore::Tick(bool UseInput)
@@ -121,12 +123,14 @@ void CCharacterCore::Tick(bool UseInput)
 					m_TriggeredEvents |= COREEVENT_GROUND_JUMP;
 					m_Vel.y = -m_pWorld->m_Tuning.m_GroundJumpImpulse;
 					m_Jumped |= 1;
+					++m_CoreStats.m_NumJumped;
 				}
 				else if(!(m_Jumped&2))
 				{
 					m_TriggeredEvents |= COREEVENT_AIR_JUMP;
 					m_Vel.y = -m_pWorld->m_Tuning.m_AirJumpImpulse;
 					m_Jumped |= 3;
+					++m_CoreStats.m_NumJumped;
 				}
 			}
 		}
@@ -144,6 +148,7 @@ void CCharacterCore::Tick(bool UseInput)
 				m_HookedPlayer = -1;
 				m_HookTick = 0;
 				m_TriggeredEvents |= COREEVENT_HOOK_LAUNCH;
+				++m_CoreStats.m_NumHooks;
 			}
 		}
 		else
@@ -329,6 +334,7 @@ void CCharacterCore::Tick(bool UseInput)
 
 				m_Vel += Dir*a*(Velocity*0.75f);
 				m_Vel *= 0.85f;
+				++m_CoreStats.m_NumTeeCollisions;
 			}
 
 			// handle hook influence
@@ -365,6 +371,10 @@ void CCharacterCore::Move()
 	vec2 NewPos = m_Pos;
 	m_pCollision->MoveBox(&NewPos, &m_Vel, vec2(28.0f, 28.0f), 0);
 
+	if(m_CoreStats.m_MaxSpeed < absolute(m_Vel.x)){
+		m_CoreStats.m_MaxSpeed = absolute(m_Vel.x);
+	}
+	
 	m_Vel.x = m_Vel.x*(1.0f/RampValue);
 
 	if(m_pWorld && m_pWorld->m_Tuning.m_PlayerCollision)
@@ -385,10 +395,14 @@ void CCharacterCore::Move()
 				float D = distance(Pos, pCharCore->m_Pos);
 				if(D < 28.0f && D > 0.0f)
 				{
-					if(a > 0.0f)
+					if(a > 0.0f) {
+						m_CoreStats.m_NumTilesMoved += distance(m_Pos, LastPos);
 						m_Pos = LastPos;
-					else if(distance(NewPos, pCharCore->m_Pos) > D)
+					}
+					else if(distance(NewPos, pCharCore->m_Pos) > D) {
+						m_CoreStats.m_NumTilesMoved += distance(m_Pos, NewPos);
 						m_Pos = NewPos;
+					}
 					return;
 				}
 			}
@@ -396,6 +410,7 @@ void CCharacterCore::Move()
 		}
 	}
 
+	m_CoreStats.m_NumTilesMoved += distance(m_Pos, NewPos);
 	m_Pos = NewPos;
 }
 
