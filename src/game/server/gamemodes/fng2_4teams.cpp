@@ -137,7 +137,6 @@ bool CGameControllerFNG24Teams::CanSpawn(int Team, vec2 *pOutPos)
 			{
 				for(int i = 0; i < 4; ++i){
 					if(i != Team) EvaluateSpawnType(&Eval, 1+((i)&3));
-					if(Eval.m_Got) break;
 				}
 			}
 		}
