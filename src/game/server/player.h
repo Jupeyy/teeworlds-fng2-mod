@@ -95,7 +95,6 @@ public:
 	struct {
 		float distance;
 		int id;
-		int addTick;
 	} m_SnappingClients[DDNET_CLIENT_MAX_CLIENTS];
 
 	//A Player we are whispering to

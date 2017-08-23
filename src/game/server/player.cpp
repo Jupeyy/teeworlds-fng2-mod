@@ -416,7 +416,6 @@ bool CPlayer::AddSnappingClient(int RealID, float Distance, char ClientVersion, 
 				m_SnappingClients[i].id = RealID;
 				m_SnappingClients[i].distance = Distance;
 				pId = i;
-				if (Server()->Tick() - m_SnappingClients[i].addTick <= 2) return false;
 				return true;
 			}
 			if (highestDistance < m_SnappingClients[i].distance || (!GameServer()->m_apPlayers[m_SnappingClients[i].id] || !GameServer()->m_apPlayers[m_SnappingClients[i].id]->GetCharacter())) {
@@ -426,13 +425,11 @@ bool CPlayer::AddSnappingClient(int RealID, float Distance, char ClientVersion, 
 			}
 		}
 		
-		//only add clients every 2 ticks, else client overloads
 		if (id > -1 && highestDistance > Distance) {
 			m_SnappingClients[id].id = RealID;
 			m_SnappingClients[id].distance = Distance;
 			pId = id;
-			m_SnappingClients[id].addTick = Server()->Tick();
-			return false;
+			return true;
 		}
 	}
 	else {
@@ -444,7 +441,6 @@ bool CPlayer::AddSnappingClient(int RealID, float Distance, char ClientVersion, 
 					m_SnappingClients[i].id = RealID;
 					m_SnappingClients[i].distance = Distance;
 					pId = i;
-					if (Server()->Tick() - m_SnappingClients[i].addTick <= 2) return false;
 					return true;
 				}
 				if (highestDistance < m_SnappingClients[i].distance || (!GameServer()->m_apPlayers[m_SnappingClients[i].id] || !GameServer()->m_apPlayers[m_SnappingClients[i].id]->GetCharacter())) {
@@ -454,13 +450,11 @@ bool CPlayer::AddSnappingClient(int RealID, float Distance, char ClientVersion, 
 				}
 			}
 			
-			//only add clients every 2 ticks, else client overloads
 			if (id > -1 && highestDistance > Distance) {
 				m_SnappingClients[id].id = RealID;
 				m_SnappingClients[id].distance = Distance;
 				pId = id;
-				m_SnappingClients[id].addTick = Server()->Tick();
-				return false;
+				return true;
 			}
 		}
 		else return true;
@@ -480,7 +474,7 @@ bool CPlayer::IsSnappingClient(int RealID, char ClientVersion, int& id) {
 			if (m_SnappingClients[i].id == 0xFFFFFFFF || m_SnappingClients[i].id == RealID) {
 				m_SnappingClients[i].id = RealID;
 				id = i;
-				return Server()->Tick() - m_SnappingClients[i].addTick > 2 ? true : false;
+				return true;
 			}
 		}
 	}
@@ -490,7 +484,7 @@ bool CPlayer::IsSnappingClient(int RealID, char ClientVersion, int& id) {
 				if (m_SnappingClients[i].id == 0xFFFFFFFF || m_SnappingClients[i].id == RealID) {
 					m_SnappingClients[i].id = RealID;
 					id = i;
-					return Server()->Tick() - m_SnappingClients[i].addTick > 2 ? true : false;
+					return true;
 				}
 			}
 		}
