@@ -313,6 +313,7 @@ public:
 	virtual const char *NetVersion();
 
 	void SendRoundStats();
+	void SendRandomTrivia();
 
 	template<class T>
 	int SendPackMsg(T *pMsg, int Flags)

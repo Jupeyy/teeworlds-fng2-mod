@@ -22,6 +22,7 @@
 #include "gameserver_config.h"
 
 #include <vector>
+#include <time.h>
 
 enum
 {
@@ -1044,6 +1045,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				return;
 
 			pPlayer->m_LastEmote = Server()->Tick();
+			++pPlayer->m_Stats.m_NumEmotes;
 
 			SendEmoticon(ClientID, pMsg->m_Emoticon); 
 			
@@ -2170,11 +2172,7 @@ void CGameContext::SendRoundStats() {
 			
 			str_format(buff, 300, "Best players: %s with a K/D of %.3f", PlayerNames, bestKD);
 		}
-		for (int i = 0; i < MAX_CLIENTS; ++i) {
-			CPlayer* p = m_apPlayers[i];
-			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
-			SendChatTarget(i, buff);
-		}
+		SendChat(-1, CGameContext::CHAT_ALL, buff);
 	}
 
 	int bestAccuracyCount = bestAccuarcyPlayerIDs.Count();
@@ -2207,14 +2205,191 @@ void CGameContext::SendRoundStats() {
 
 			str_format(buff, 300, "Best accuracy: %s with %3.1f%%", PlayerNames, bestAccuracy * 100.f);
 		}
+		SendChat(-1, CGameContext::CHAT_ALL, buff);
+	}
+	
+	if(m_Config->m_SvTrivia) SendRandomTrivia();
+}
+
+void CGameContext::SendRandomTrivia(){	
+	srand (time(NULL));
+	int r = rand()%8;
+	
+	bool TriviaSent = false;
+	
+	//most jumps
+	if(r == 0){
+		int MaxJumps = 0;
+		int PlayerID = -1;
+		
 		for (int i = 0; i < MAX_CLIENTS; ++i) {
 			CPlayer* p = m_apPlayers[i];
 			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
-			SendChatTarget(i, buff);
+			if(MaxJumps < p->m_Stats.m_NumJumped){
+				MaxJumps = p->m_Stats.m_NumJumped;
+				PlayerID = i;
+			}
+		}
+		
+		if(PlayerID != -1){
+			char buff[300];
+			str_format(buff, sizeof(buff), "Trivia: %s jumped %d time%s in this round.", Server()->ClientName(PlayerID), MaxJumps, (MaxJumps == 1 ? "" : "s"));
+			SendChat(-1, CGameContext::CHAT_ALL, buff);
+			TriviaSent = true;
 		}
 	}
+	//longest travel distance
+	else if(r == 1){
+		float MaxTilesMoved = 0.f;
+		int PlayerID = -1;
+		
+		for (int i = 0; i < MAX_CLIENTS; ++i) {
+			CPlayer* p = m_apPlayers[i];
+			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
+			if(MaxTilesMoved < p->m_Stats.m_NumTilesMoved){
+				MaxTilesMoved = p->m_Stats.m_NumTilesMoved;
+				PlayerID = i;
+			}
+		}
+		
+		if(PlayerID != -1){
+			char buff[300];
+			str_format(buff, sizeof(buff), "Trivia: %s moved %5.2f tiles in this round.", Server()->ClientName(PlayerID), MaxTilesMoved/32.f);
+			SendChat(-1, CGameContext::CHAT_ALL, buff);
+			TriviaSent = true;
+		}
+	}
+	//most hooks
+	else if(r == 2){
+		int MaxHooks = 0;
+		int PlayerID = -1;
+		
+		for (int i = 0; i < MAX_CLIENTS; ++i) {
+			CPlayer* p = m_apPlayers[i];
+			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
+			if(MaxHooks < p->m_Stats.m_NumHooks){
+				MaxHooks = p->m_Stats.m_NumHooks;
+				PlayerID = i;
+			}
+		}
+		
+		if(PlayerID != -1){
+			char buff[300];
+			str_format(buff, sizeof(buff), "Trivia: %s hooked %d time%s in this round.", Server()->ClientName(PlayerID), MaxHooks, (MaxHooks == 1 ? "" : "s"));
+			SendChat(-1, CGameContext::CHAT_ALL, buff);
+			TriviaSent = true;
+		}
+	}
+	//fastest player
+	else if(r == 3){
+		float MaxSpeed = 0.f;
+		int PlayerID = -1;
+		
+		for (int i = 0; i < MAX_CLIENTS; ++i) {
+			CPlayer* p = m_apPlayers[i];
+			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
+			if(MaxSpeed < p->m_Stats.m_MaxSpeed){
+				MaxSpeed = p->m_Stats.m_MaxSpeed;
+				PlayerID = i;
+			}
+		}
+		
+		if(PlayerID != -1){
+			char buff[300];
+			str_format(buff, sizeof(buff), "Trivia: %s was the fastest player with %4.2f tiles per second(no fallspeed).", Server()->ClientName(PlayerID), (MaxSpeed*(float)Server()->TickSpeed())/32.f);
+			SendChat(-1, CGameContext::CHAT_ALL, buff);
+			TriviaSent = true;
+		}
+	}
+	//most bounces
+	else if(r == 4){
+		int MaxTeeCols = 0;
+		int PlayerID = -1;
+		
+		for (int i = 0; i < MAX_CLIENTS; ++i) {
+			CPlayer* p = m_apPlayers[i];
+			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
+			if(MaxTeeCols < p->m_Stats.m_NumTeeCollisions){
+				MaxTeeCols = p->m_Stats.m_NumTeeCollisions;
+				PlayerID = i;
+			}
+		}
+		
+		if(PlayerID != -1){
+			char buff[300];
+			str_format(buff, sizeof(buff), "Trivia: %s bounced %d time%s from other players.", Server()->ClientName(PlayerID), MaxTeeCols, (MaxTeeCols == 1 ? "" : "s"));
+			SendChat(-1, CGameContext::CHAT_ALL, buff);
+			TriviaSent = true;
+		}
+	}
+	//player longest freeze time
+	else if(r == 5){
+		int MaxFreezeTicks = 0;
+		int PlayerID = -1;
+		
+		for (int i = 0; i < MAX_CLIENTS; ++i) {
+			CPlayer* p = m_apPlayers[i];
+			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
+			if(MaxFreezeTicks < p->m_Stats.m_NumFreezeTicks){
+				MaxFreezeTicks = p->m_Stats.m_NumFreezeTicks;
+				PlayerID = i;
+			}
+		}
+		
+		if(PlayerID != -1){
+			char buff[300];
+			str_format(buff, sizeof(buff), "Trivia: %s was freezed for %4.2f seconds total this round.", Server()->ClientName(PlayerID), (float)MaxFreezeTicks/(float)Server()->TickSpeed());
+			SendChat(-1, CGameContext::CHAT_ALL, buff);
+			TriviaSent = true;
+		}
+	}
+	//player with most unfreezes of teammates
+	else if(r == 6){
+		int MaxUnFreezes = 0;
+		int PlayerID = -1;
+		
+		for (int i = 0; i < MAX_CLIENTS; ++i) {
+			CPlayer* p = m_apPlayers[i];
+			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
+			if(MaxUnFreezes < p->m_unfreeze){
+				MaxUnFreezes = p->m_unfreeze;
+				PlayerID = i;
+			}
+		}
+		
+		if(PlayerID != -1){
+			char buff[300];
+			str_format(buff, sizeof(buff), "Trivia: %s unfreezed %d teammate%s.", Server()->ClientName(PlayerID), MaxUnFreezes, (MaxUnFreezes == 1 ? "" : "s"));
+			SendChat(-1, CGameContext::CHAT_ALL, buff);
+			TriviaSent = true;
+		}
+	}
+	//player with most emotes
+	else if(r == 7){
+		int MaxEmotes = 0;
+		int PlayerID = -1;
+		
+		for (int i = 0; i < MAX_CLIENTS; ++i) {
+			CPlayer* p = m_apPlayers[i];
+			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
+			if(MaxEmotes < p->m_Stats.m_NumEmotes){
+				MaxEmotes = p->m_Stats.m_NumEmotes;
+				PlayerID = i;
+			}
+		}
+		
+		if(PlayerID != -1){
+			char buff[300];
+			str_format(buff, sizeof(buff), "Trivia: %s emoted %d time%s.", Server()->ClientName(PlayerID), MaxEmotes, (MaxEmotes == 1 ? "" : "s"));
+			SendChat(-1, CGameContext::CHAT_ALL, buff);
+			TriviaSent = true;
+		}
+	}
+	
+	if(!TriviaSent){
+		SendChat(-1, CGameContext::CHAT_ALL, "Trivia: Press F1 and use PageUp and PageDown to scroll in the console window");
+	}
 }
-
 
 int CGameContext::SendPackMsg(CNetMsg_Sv_KillMsg *pMsg, int Flags)
 {
