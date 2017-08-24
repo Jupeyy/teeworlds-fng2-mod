@@ -441,7 +441,7 @@ bool CPlayer::AddSnappingClient(int RealID, float Distance, char ClientVersion, 
 					m_SnappingClients[i].id = RealID;
 					m_SnappingClients[i].distance = Distance;
 					pId = i;
-					return false;
+					return true;
 				}
 				if (highestDistance < m_SnappingClients[i].distance || (!GameServer()->m_apPlayers[m_SnappingClients[i].id] || !GameServer()->m_apPlayers[m_SnappingClients[i].id]->GetCharacter())) {
 					id = i;
@@ -454,7 +454,7 @@ bool CPlayer::AddSnappingClient(int RealID, float Distance, char ClientVersion, 
 				m_SnappingClients[id].id = RealID;
 				m_SnappingClients[id].distance = Distance;
 				pId = id;
-				return true;
+				return false;
 			}
 		}
 		else return true;
