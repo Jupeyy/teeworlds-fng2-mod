@@ -340,7 +340,7 @@ void CCharacterCore::Tick(bool UseInput)
 					++m_CoreStats.m_NumTeeCollisions;
 				}
 			}
-			//only set it to null here... should be rare that a tee bounces from another tee in the exact tick he spawns and bounced from him when he died
+			//only set it to null here... should be rare that a tee bounces from another tee in the exact tick the other tee spawns and bounced from him when he died
 			else m_CoreStats.m_HadCollision[i] = 0;
 
 			// handle hook influence
