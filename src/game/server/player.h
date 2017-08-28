@@ -41,20 +41,6 @@ public:
 	CCharacter *GetCharacter();
 
 	virtual void ResetStats();
-	
-	//score things
-	int m_kills; //kills made by weapon
-	int m_grabs_normal; //kills made by grabbing oponents into spikes - normal spikes
-	int m_grabs_team; //kills made by grabbing oponents into spikes - team spikes
-	int m_grabs_false; //kills made by grabbing oponents into spikes - oponents spikes
-	int m_grabs_gold; //kills made by grabbing oponents into spikes - gold spikes
-	int m_deaths; //death by spikes -- we don't make a difference of the spike types here
-	int m_hits; //hits by oponents weapon
-	int m_selfkills;
-	int m_teamkills;
-	int m_unfreeze;
-	
-	int m_shots; //the shots a player made
 
 	//client version
 	char m_ClientVersion;
@@ -71,7 +57,22 @@ public:
 		int m_NumTeeCollisions;
 		//other stats
 		int m_NumFreezeTicks;
-		int m_NumEmotes;
+		int m_NumEmotes;		
+	
+		//score things
+		int m_Kills; //kills made by weapon
+		int m_GrabsNormal; //kills made by grabbing oponents into spikes - normal spikes
+		int m_GrabsTeam; //kills made by grabbing oponents into spikes - team spikes
+		int m_GrabsFalse; //kills made by grabbing oponents into spikes - oponents spikes
+		int m_GrabsGold; //kills made by grabbing oponents into spikes - gold spikes
+		int m_Deaths; //death by spikes -- we don't make a difference of the spike types here
+		int m_Hits; //hits by oponents weapon
+		int m_Selfkills;
+		int m_Teamkills;
+		int m_Unfreezes; //number of actual unfreezes of teammates
+		int m_UnfreezingHammerHits; //number of hammers to a freezed teammate
+		
+		int m_Shots; //the shots a player made
 	} m_Stats;
 
 	enum eClientVersion {

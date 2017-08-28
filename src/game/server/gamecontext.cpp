@@ -666,7 +666,7 @@ void CGameContext::OnClientConnected(int ClientID)
 	if(m_Config->m_DbgDummies)
 	{
 		if (ClientID >= MAX_CLIENTS - m_Config->m_DbgDummies) {
-			m_apPlayers[ClientID]->m_kills = ClientID;
+			m_apPlayers[ClientID]->m_Stats.m_Kills = ClientID;
 			return;
 		}
 	}
@@ -1273,9 +1273,9 @@ void CGameContext::CmdStats(CGameContext* pContext, int pClientID, const char** 
 		"║\n"
 		"╠═══════════ Misc ══════════\n"
 		"║\n"
-		"║Teammates unfreezed: %d\n"
+		"║Teammates hammered/unfreezed: %d / %d\n"
 		"║\n"
-		"╚══════════════════════════\n", p->m_kills, p->m_hits, (p->m_hits != 0) ? (float)((float)p->m_kills / (float)p->m_hits) : (float)p->m_kills, p->m_shots, ((float)p->m_kills / (float)(p->m_shots == 0 ? 1: p->m_shots)) * 100.f, p->m_grabs_normal, p->m_grabs_team, p->m_grabs_gold, p->m_grabs_false, p->m_deaths, p->m_unfreeze);
+		"╚══════════════════════════\n", p->m_Stats.m_Kills, p->m_Stats.m_Hits, (p->m_Stats.m_Hits != 0) ? (float)((float)p->m_Stats.m_Kills / (float)p->m_Stats.m_Hits) : (float)p->m_Stats.m_Kills, p->m_Stats.m_Shots, ((float)p->m_Stats.m_Kills / (float)(p->m_Stats.m_Shots == 0 ? 1: p->m_Stats.m_Shots)) * 100.f, p->m_Stats.m_GrabsNormal, p->m_Stats.m_GrabsTeam, p->m_Stats.m_GrabsGold, p->m_Stats.m_GrabsFalse, p->m_Stats.m_Deaths, p->m_Stats.m_UnfreezingHammerHits, p->m_Stats.m_Unfreezes);
 
 	CNetMsg_Sv_Motd Msg;
 	Msg.m_pMessage = buff;
@@ -2091,38 +2091,38 @@ void CGameContext::SendRoundStats() {
 		SendChatTarget(i, "╔═════════ Statistics ═════════");
 		SendChatTarget(i, "║");
 
-		str_format(buff, 300, "║Kills(weapon): %d", p->m_kills);
+		str_format(buff, 300, "║Kills(weapon): %d", p->m_Stats.m_Kills);
 		SendChatTarget(i, buff);
-		str_format(buff, 300, "║Hits(By opponent's weapon): %d", p->m_hits);
+		str_format(buff, 300, "║Hits(By opponent's weapon): %d", p->m_Stats.m_Hits);
 		SendChatTarget(i, buff);
 		SendChatTarget(i, "║");
-		str_format(buff, 300, "║Kills/Deaths: %4.2f", (p->m_hits != 0) ? (float)((float)p->m_kills / (float)p->m_hits) : (float)p->m_kills);
+		str_format(buff, 300, "║Kills/Deaths: %4.2f", (p->m_Stats.m_Hits != 0) ? (float)((float)p->m_Stats.m_Kills / (float)p->m_Stats.m_Hits) : (float)p->m_Stats.m_Kills);
 		SendChatTarget(i, buff);		
-		str_format(buff, 300, "║Shots | Kills/Shots: %d | %3.1f%%\n", p->m_shots, ((float)p->m_kills / (float)(p->m_shots == 0 ? 1: p->m_shots)) * 100.f);
+		str_format(buff, 300, "║Shots | Kills/Shots: %d | %3.1f%%\n", p->m_Stats.m_Shots, ((float)p->m_Stats.m_Kills / (float)(p->m_Stats.m_Shots == 0 ? 1: p->m_Stats.m_Shots)) * 100.f);
 		SendChatTarget(i, buff);
 		SendChatTarget(i, "║");
 		SendChatTarget(i, "╠══════════ Spikes ══════════");
 		SendChatTarget(i, "║");
-		str_format(buff, 300, "║Kills(normal spikes): %d", p->m_grabs_normal);
+		str_format(buff, 300, "║Kills(normal spikes): %d", p->m_Stats.m_GrabsNormal);
 		SendChatTarget(i, buff);
-		str_format(buff, 300, "║Kills(team spikes): %d", p->m_grabs_team);
+		str_format(buff, 300, "║Kills(team spikes): %d", p->m_Stats.m_GrabsTeam);
 		SendChatTarget(i, buff);
-		str_format(buff, 300, "║Kills(golden spikes): %d", p->m_grabs_gold);
+		str_format(buff, 300, "║Kills(golden spikes): %d", p->m_Stats.m_GrabsGold);
 		SendChatTarget(i, buff);
-		str_format(buff, 300, "║Kills(false spikes): %d", p->m_grabs_false);
+		str_format(buff, 300, "║Kills(false spikes): %d", p->m_Stats.m_GrabsFalse);
 		SendChatTarget(i, buff);
-		str_format(buff, 300, "║Spike deaths(while freezed): %d", p->m_deaths);
+		str_format(buff, 300, "║Spike deaths(while freezed): %d", p->m_Stats.m_Deaths);
 		SendChatTarget(i, buff);
 		SendChatTarget(i, "║");
 		SendChatTarget(i, "╠═══════════ Misc ══════════");
 		SendChatTarget(i, "║");
-		str_format(buff, 300, "║Teammates unfreezed: %d", p->m_unfreeze);
+		str_format(buff, 300, "║Teammates hammered/unfreezed: %d / %d", p->m_Stats.m_UnfreezingHammerHits, p->m_Stats.m_Unfreezes);
 		SendChatTarget(i, buff);
 		SendChatTarget(i, "║");
 		SendChatTarget(i, "╚══════════════════════════");
 		SendChatTarget(i, "Press F1 to view stats now!!");
 
-		float kd = ((p->m_hits != 0) ? (float)((float)p->m_kills / (float)p->m_hits) : (float)p->m_kills);
+		float kd = ((p->m_Stats.m_Hits != 0) ? (float)((float)p->m_Stats.m_Kills / (float)p->m_Stats.m_Hits) : (float)p->m_Stats.m_Kills);
 		if (bestKD < kd) {
 			bestKD = kd;
 			bestKDPlayerIDs = 0;
@@ -2132,7 +2132,7 @@ void CGameContext::SendRoundStats() {
 			bestKDPlayerIDs.SetBitOfPosition(i);
 		}
 
-		float accuracy = (float)p->m_kills / (float)(p->m_shots == 0 ? 1 : p->m_shots);
+		float accuracy = (float)p->m_Stats.m_Kills / (float)(p->m_Stats.m_Shots == 0 ? 1 : p->m_Stats.m_Shots);
 		if (bestAccuracy < accuracy) {
 			bestAccuracy = accuracy;
 			bestAccuarcyPlayerIDs = 0;
@@ -2343,23 +2343,23 @@ void CGameContext::SendRandomTrivia(){
 			TriviaSent = true;
 		}
 	}
-	//player with most unfreezes of teammates
+	//player with most hammers to freezed teammates
 	else if(r == 6){
-		int MaxUnFreezes = 0;
+		int MaxUnfreezeHammers = 0;
 		int PlayerID = -1;
 		
 		for (int i = 0; i < MAX_CLIENTS; ++i) {
 			CPlayer* p = m_apPlayers[i];
 			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
-			if(MaxUnFreezes < p->m_unfreeze){
-				MaxUnFreezes = p->m_unfreeze;
+			if(MaxUnfreezeHammers < p->m_Stats.m_UnfreezingHammerHits){
+				MaxUnfreezeHammers = p->m_Stats.m_UnfreezingHammerHits;
 				PlayerID = i;
 			}
 		}
 		
 		if(PlayerID != -1){
 			char buff[300];
-			str_format(buff, sizeof(buff), "Trivia: %s unfreezed %d teammate%s.", Server()->ClientName(PlayerID), MaxUnFreezes, (MaxUnFreezes == 1 ? "" : "s"));
+			str_format(buff, sizeof(buff), "Trivia: %s hammered %d freezed teammate%s.", Server()->ClientName(PlayerID), MaxUnfreezeHammers, (MaxUnfreezeHammers == 1 ? "" : "s"));
 			SendChat(-1, CGameContext::CHAT_ALL, buff);
 			TriviaSent = true;
 		}

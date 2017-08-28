@@ -342,7 +342,7 @@ void CCharacter::FireWeapon()
 
 		case WEAPON_GRENADE:
 		{
-			++m_pPlayer->m_shots;
+			++m_pPlayer->m_Stats.m_Shots;
 			CProjectile *pProj = new CProjectile(GameWorld(), WEAPON_GRENADE,
 				m_pPlayer->GetCID(),
 				ProjStartPos,
@@ -355,7 +355,7 @@ void CCharacter::FireWeapon()
 
 		case WEAPON_RIFLE:
 		{
-			++m_pPlayer->m_shots;
+			++m_pPlayer->m_Stats.m_Shots;
 			new CLaser(GameWorld(), m_Pos, Direction, GameServer()->Tuning()->m_LaserReach, m_pPlayer->GetCID());
 			GameServer()->CreateSound(m_Pos, SOUND_RIFLE_FIRE);
 		} break;
@@ -941,32 +941,11 @@ void CCharacter::TakeHammerHit(CCharacter* pFrom)
 		if (IsFreezed()) {
 			if (((float)m_Freeze.m_Duration - (float)(Server()->Tick() - m_Freeze.m_ActivationTick - 1) / (float)Server()->TickSpeed()) < 3.f) {
 				Unfreeze(pPlayer->GetCID());
-
-				/*vec2 dir = m_Pos;
-				if (pPlayer->GetCharacter()) {
-				dir -= pPlayer->GetCharacter()->m_Pos;
-				}
-				dir = normalize(dir);
-				float a = acos(dir.y) * 180.0 / 3.14159265;
-				if (dir.x > 0.0f) a = 360.f - a;
-				if (a > 180.f) a -= 20; else a += 20;*/
-
-				//GameServer()->CreateDamageInd(m_Pos, a, 3, m_pPlayer->GetTeam());
 			}
 			else {
 				m_Freeze.m_ActivationTick -= Server()->TickSpeed() * 3;
-
-				/*vec2 dir = m_Pos;
-				if (pPlayer->GetCharacter()) {
-				dir -= pPlayer->GetCharacter()->m_Pos;
-				}
-				dir = normalize(dir);
-				float a = acos(dir.y) * 180.0 / 3.14159265;
-				if (dir.x > 0.0f) a = 360.f - a;
-				if (a > 180.f) a -= 20; else a += 20;*/
-
-				//GameServer()->CreateDamageInd(m_Pos, a, 3, m_pPlayer->GetTeam());
 			}
+			++pPlayer->m_Stats.m_UnfreezingHammerHits;
 		}
 	}
 	else {

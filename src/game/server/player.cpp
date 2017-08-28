@@ -374,31 +374,18 @@ void CPlayer::TryRespawn()
 
 void CPlayer::CalcScore(){
 	if(g_Config.m_SvScoreDisplay == 0){
-		m_Score = m_kills + m_unfreeze;
+		m_Score = m_Stats.m_Kills + m_Stats.m_Unfreezes;
 		//TODO: make this configurable
-		m_Score += (m_grabs_normal * g_Config.m_SvPlayerScoreSpikeNormal) + (m_grabs_team * g_Config.m_SvPlayerScoreSpikeTeam) + (m_grabs_gold * g_Config.m_SvPlayerScoreSpikeGold);
+		m_Score += (m_Stats.m_GrabsNormal * g_Config.m_SvPlayerScoreSpikeNormal) + (m_Stats.m_GrabsTeam * g_Config.m_SvPlayerScoreSpikeTeam) + (m_Stats.m_GrabsGold * g_Config.m_SvPlayerScoreSpikeGold);
 	} else {
-		m_Score = m_kills + m_unfreeze - m_hits;
+		m_Score = m_Stats.m_Kills + m_Stats.m_Unfreezes - m_Stats.m_Hits;
 		//TODO: make this configurable
-		m_Score += (m_grabs_normal * g_Config.m_SvPlayerScoreSpikeNormal) + (m_grabs_team * g_Config.m_SvPlayerScoreSpikeTeam) + (m_grabs_false * g_Config.m_SvPlayerScoreSpikeFalse) + (m_grabs_gold * g_Config.m_SvPlayerScoreSpikeGold) - (m_deaths * g_Config.m_SvPlayerScoreSpikeNormal);
-		m_Score -= m_teamkills;	
+		m_Score += (m_Stats.m_GrabsNormal * g_Config.m_SvPlayerScoreSpikeNormal) + (m_Stats.m_GrabsTeam * g_Config.m_SvPlayerScoreSpikeTeam) + (m_Stats.m_GrabsFalse * g_Config.m_SvPlayerScoreSpikeFalse) + (m_Stats.m_GrabsGold * g_Config.m_SvPlayerScoreSpikeGold) - (m_Stats.m_Deaths * g_Config.m_SvPlayerScoreSpikeNormal);
+		m_Score -= m_Stats.m_Teamkills;	
 	}
 }
 
 void CPlayer::ResetStats(){
-	m_kills = 0;
-	m_grabs_normal = 0;
-	m_grabs_team = 0;
-	m_grabs_false = 0;
-	m_grabs_gold = 0;
-	m_deaths = 0;
-	m_hits = 0;
-	m_selfkills = 0;
-	m_teamkills = 0;
-	m_unfreeze = 0;
-	
-	m_shots = 0;
-	
 	mem_zero(&m_Stats, sizeof(m_Stats));
 }
 

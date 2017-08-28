@@ -237,34 +237,34 @@ int CGameControllerFNG2Solo::OnCharacterDeath(class CCharacter *pVictim, class C
 	if(!pKiller || Weapon == WEAPON_GAME)
 		return 0;
 	if(pKiller == pVictim->GetPlayer())
-		pVictim->GetPlayer()->m_selfkills++; // suicide
+		pVictim->GetPlayer()->m_Stats.m_Selfkills++; // suicide
 	else
 	{
 		if (Weapon == WEAPON_RIFLE || Weapon == WEAPON_GRENADE){
 			if(IsTeamplay() && pVictim->GetPlayer()->GetTeam() == pKiller->GetTeam())
-				pKiller->m_teamkills++; // teamkill
+				pKiller->m_Stats.m_Teamkills++; // teamkill
 			else {
-				pKiller->m_kills++; // normal kill
-				pVictim->GetPlayer()->m_hits++; //hits by oponent
+				pKiller->m_Stats.m_Kills++; // normal kill
+				pVictim->GetPlayer()->m_Stats.m_Hits++; //hits by oponent
 				m_aTeamscore[pKiller->GetTeam()]++; //make this config.?
 			}
 		} else if(Weapon == WEAPON_SPIKE_NORMAL){
 			if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeNormal);
-			pKiller->m_grabs_normal++;
-			pVictim->GetPlayer()->m_deaths++;
+			pKiller->m_Stats.m_GrabsNormal++;
+			pVictim->GetPlayer()->m_Stats.m_Deaths++;
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
 		} else if(Weapon == WEAPON_SPIKE_RED || Weapon == WEAPON_SPIKE_BLUE){
-			pKiller->m_grabs_team++;
-			pVictim->GetPlayer()->m_deaths++;
+			pKiller->m_Stats.m_GrabsTeam++;
+			pVictim->GetPlayer()->m_Stats.m_Deaths++;
 			if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeTeam);
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
 		} else if(Weapon == WEAPON_SPIKE_GOLD){
-			pKiller->m_grabs_gold++;
-			pVictim->GetPlayer()->m_deaths++;
+			pKiller->m_Stats.m_GrabsGold++;
+			pVictim->GetPlayer()->m_Stats.m_Deaths++;
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
 			if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeGold);
 		} else if(Weapon == WEAPON_HAMMER){ //only called if team mate unfreezed you
-			pKiller->m_unfreeze++;
+			pKiller->m_Stats.m_Unfreezes++;
 		}
 	}
 	if(Weapon == WEAPON_SELF){
