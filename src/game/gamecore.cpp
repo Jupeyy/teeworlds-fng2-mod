@@ -334,8 +334,14 @@ void CCharacterCore::Tick(bool UseInput)
 
 				m_Vel += Dir*a*(Velocity*0.75f);
 				m_Vel *= 0.85f;
-				++m_CoreStats.m_NumTeeCollisions;
+				
+				if(m_CoreStats.m_HadCollision[i] == 0) {
+					m_CoreStats.m_HadCollision[i] = 1;
+					++m_CoreStats.m_NumTeeCollisions;
+				}
 			}
+			//only set it to null here... should be rare that a tee bounces from another tee in the exact tick he spawns and bounced from him when he died
+			else m_CoreStats.m_HadCollision[i] = 0;
 
 			// handle hook influence
 			if(m_HookedPlayer == i && m_pWorld->m_Tuning.m_PlayerHooking)

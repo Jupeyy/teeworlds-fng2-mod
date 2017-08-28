@@ -200,6 +200,9 @@ public:
 		int m_NumHooks;
 		float m_MaxSpeed;
 		int m_NumTeeCollisions;
+		
+		//this is just for calculation
+		char m_HadCollision[MAX_CLIENTS];
 	} m_CoreStats;
 
 	void Init(CWorldCore *pWorld, CCollision *pCollision);
