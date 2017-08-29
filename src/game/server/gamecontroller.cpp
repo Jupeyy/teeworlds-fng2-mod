@@ -848,7 +848,7 @@ void IGameController::ShuffleTeams()
 				TeamPlayersAfterShuffle[GameServer()->m_apPlayers[i]->GetTeam()].SetBitOfPosition(i);
 			}
 		}		
-	} while ((TeamPlayers[0].Count() > 1 || TeamPlayers[1].Count() > 2) && (TeamPlayers[0] == TeamPlayersAfterShuffle[0] || TeamPlayers[0] == TeamPlayersAfterShuffle[1]));
+	} while ((TeamPlayers[0].Count() > 1 || TeamPlayers[1].Count() > 1) && (TeamPlayers[0] == TeamPlayersAfterShuffle[0] || TeamPlayers[0] == TeamPlayersAfterShuffle[1]));
 }
 
 bool IGameController::UseFakeTeams(){
