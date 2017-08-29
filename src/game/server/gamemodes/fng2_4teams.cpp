@@ -289,6 +289,9 @@ void CGameControllerFNG24Teams::Tick()
 
 					pP->Respawn();
 					pP->m_ForceBalanced = true;
+					
+					--aT[TeamMax];
+					++aT[TeamMin];
 				} while (--NumBalance);
 
 				m_ForceBalanced = true;
