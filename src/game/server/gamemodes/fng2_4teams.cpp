@@ -755,12 +755,24 @@ bool CGameControllerFNG24Teams::CanChangeTeam(CPlayer *pPlayer, int JoinTeam)
 	aT[JoinTeam]++;
 	if (pPlayer->GetTeam() != TEAM_SPECTATORS)
 		aT[pPlayer->GetTeam()]--;
+	
+	int SmallestTeam = 0;
+	int SmallestTeamSize = MAX_CLIENTS + 1;
+	//get the smallest team here
+	for(int i = 0; i < 4; ++i)
+	{
+		if(aT[i] < SmallestTeamSize)
+		{
+			SmallestTeamSize = aT[i];
+			SmallestTeam = i;
+		}
+	}
 
 	// there is a player-difference of at least 2
-	if(absolute(aT[JoinTeam]-aT[pPlayer->GetTeam()]) >= 2)
+	if(absolute(aT[JoinTeam]-aT[SmallestTeam]) >= 2)
 	{
 		// player wants to join team with less players
-		if (aT[JoinTeam] < aT[pPlayer->GetTeam()])
+		if (aT[JoinTeam] < aT[SmallestTeam])
 			return true;
 		else
 			return false;
