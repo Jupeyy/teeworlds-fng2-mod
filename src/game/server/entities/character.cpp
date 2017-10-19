@@ -1002,7 +1002,7 @@ void CCharacter::Snap(int SnappingClient)
 	pCharacter->m_Direction = m_Input.m_Direction;
 
 	int HookedID = pCharacter->m_HookedPlayer;
-	if (HookedID != -1 && GameServer()->m_apPlayers[SnappingClient] && !GameServer()->m_apPlayers[SnappingClient]->IsSnappingClient(HookedID, GameServer()->m_apPlayers[SnappingClient]->m_ClientVersion, HookedID)) {
+	if (HookedID != -1 && SnappingClient > -1 && GameServer()->m_apPlayers[SnappingClient] && !GameServer()->m_apPlayers[SnappingClient]->IsSnappingClient(HookedID, GameServer()->m_apPlayers[SnappingClient]->m_ClientVersion, HookedID)) {
 		pCharacter->m_HookedPlayer = -1;
 	}
 	else if(IsAlive()) pCharacter->m_HookedPlayer = HookedID;

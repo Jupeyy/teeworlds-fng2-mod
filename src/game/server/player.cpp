@@ -194,7 +194,7 @@ void CPlayer::Snap(int SnappingClient)
 			return;
 		
 		pSpectatorInfo->m_SpectatorID = m_SpectatorID;
-		if(!GameServer()->m_apPlayers[SnappingClient]->IsSnappingClient(m_SpectatorID, GameServer()->m_apPlayers[SnappingClient]->m_ClientVersion, pSpectatorInfo->m_SpectatorID))
+		if(SnappingClient > -1 && !GameServer()->m_apPlayers[SnappingClient]->IsSnappingClient(m_SpectatorID, GameServer()->m_apPlayers[SnappingClient]->m_ClientVersion, pSpectatorInfo->m_SpectatorID))
 			pSpectatorInfo->m_SpectatorID = m_SpectatorID;
 		pSpectatorInfo->m_X = m_ViewPos.x;
 		pSpectatorInfo->m_Y = m_ViewPos.y;
@@ -394,7 +394,7 @@ bool CPlayer::AddSnappingClient(int RealID, float Distance, char ClientVersion, 
 		if ((ClientVersion == CLIENT_VERSION_NORMAL && MAX_CLIENTS > VANILLA_CLIENT_MAX_CLIENTS) || (MAX_CLIENTS > DDNET_CLIENT_MAX_CLIENTS)) pId = 0;
 		return true;
 	}
-	if (ClientVersion == CLIENT_VERSION_NORMAL && MAX_CLIENTS > VANILLA_CLIENT_MAX_CLIENTS) {
+	else if (ClientVersion == CLIENT_VERSION_NORMAL && MAX_CLIENTS > VANILLA_CLIENT_MAX_CLIENTS) {
 		int id = -1;
 		float highestDistance = 0;
 		// VANILLA_CLIENT_MAX_CLIENTS - 1 to allow chatting!!
@@ -455,7 +455,7 @@ bool CPlayer::IsSnappingClient(int RealID, char ClientVersion, int& id) {
 		if ((ClientVersion == CLIENT_VERSION_NORMAL && MAX_CLIENTS > VANILLA_CLIENT_MAX_CLIENTS) || (MAX_CLIENTS > DDNET_CLIENT_MAX_CLIENTS)) id = 0;
 		return true;
 	}
-	if (ClientVersion == CLIENT_VERSION_NORMAL && MAX_CLIENTS > VANILLA_CLIENT_MAX_CLIENTS) {
+	else if (ClientVersion == CLIENT_VERSION_NORMAL && MAX_CLIENTS > VANILLA_CLIENT_MAX_CLIENTS) {
 		// VANILLA_CLIENT_MAX_CLIENTS - 1 to allow chatting!!
 		for (int i = 0; i < VANILLA_CLIENT_MAX_CLIENTS - 1; ++i) {
 			if (m_SnappingClients[i].id == 0xFFFFFFFF || m_SnappingClients[i].id == RealID) {
@@ -495,14 +495,17 @@ int CPlayer::GetRealIDFromSnappingClients(int SnapID) {
 }
 
 void CPlayer::FakeSnap(int PlayerID) {
-	int FakeID = PlayerID;
+	if ((m_ClientVersion == CLIENT_VERSION_NORMAL && MAX_CLIENTS > VANILLA_CLIENT_MAX_CLIENTS) || (MAX_CLIENTS > DDNET_CLIENT_MAX_CLIENTS))
+	{
+		int FakeID = PlayerID;
 
-	CNetObj_ClientInfo *pClientInfo = static_cast<CNetObj_ClientInfo *>(Server()->SnapNewItem(NETOBJTYPE_CLIENTINFO, FakeID, sizeof(CNetObj_ClientInfo)));
+		CNetObj_ClientInfo *pClientInfo = static_cast<CNetObj_ClientInfo *>(Server()->SnapNewItem(NETOBJTYPE_CLIENTINFO, FakeID, sizeof(CNetObj_ClientInfo)));
 
-	if (!pClientInfo)
-		return;
+		if (!pClientInfo)
+			return;
 
-	StrToInts(&pClientInfo->m_Name0, 4, " ");
-	StrToInts(&pClientInfo->m_Clan0, 3, "");
-	StrToInts(&pClientInfo->m_Skin0, 6, "default");
+		StrToInts(&pClientInfo->m_Name0, 4, " ");
+		StrToInts(&pClientInfo->m_Clan0, 3, "");
+		StrToInts(&pClientInfo->m_Skin0, 6, "default");
+	}
 }
