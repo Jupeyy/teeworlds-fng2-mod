@@ -1273,7 +1273,7 @@ void CGameContext::CmdStats(CGameContext* pContext, int pClientID, const char** 
 		"║\n"
 		"╠═══════════ Misc ══════════\n"
 		"║\n"
-		"║Teammates hammered/unfreezed: %d / %d\n"
+		"║Mates hammer-/unfreezed: %d/%d\n"
 		"║\n"
 		"╚══════════════════════════\n", p->m_Stats.m_Kills, p->m_Stats.m_Hits, (p->m_Stats.m_Hits != 0) ? (float)((float)p->m_Stats.m_Kills / (float)p->m_Stats.m_Hits) : (float)p->m_Stats.m_Kills, p->m_Stats.m_Shots, ((float)p->m_Stats.m_Kills / (float)(p->m_Stats.m_Shots == 0 ? 1: p->m_Stats.m_Shots)) * 100.f, p->m_Stats.m_GrabsNormal, p->m_Stats.m_GrabsTeam, p->m_Stats.m_GrabsGold, p->m_Stats.m_GrabsFalse, p->m_Stats.m_Deaths, p->m_Stats.m_UnfreezingHammerHits, p->m_Stats.m_Unfreezes);
 
@@ -2382,6 +2382,73 @@ void CGameContext::SendRandomTrivia(){
 			char buff[300];
 			str_format(buff, sizeof(buff), "Trivia: %s emoted %d time%s.", Server()->ClientName(PlayerID), MaxEmotes, (MaxEmotes == 1 ? "" : "s"));
 			SendChat(-1, CGameContext::CHAT_ALL, buff);
+			TriviaSent = true;
+		}
+	}
+	//player that was hit most often
+	else if(r == 8){
+		int MaxHit = 0;
+		int PlayerID = -1;
+		
+		for (int i = 0; i < MAX_CLIENTS; ++i) {
+			CPlayer* p = m_apPlayers[i];
+			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
+			if(MaxHit < p->m_Stats.m_Hits){
+				MaxHit = p->m_Stats.m_Hits;
+				PlayerID = i;
+			}
+		}
+		
+		if(PlayerID != -1){
+			char buff[300];
+			str_format(buff, sizeof(buff), "Trivia: %s was hitted %d time%s by the opponent's weapon.", Server()->ClientName(PlayerID), MaxHit, (MaxHit == 1 ? "" : "s"));
+			SendChat(-1, CGameContext::CHAT_ALL, buff);
+			TriviaSent = true;
+		}
+	}
+	//player that was thrown into spikes most often by opponents
+	else if(r == 9){
+		int MaxDeaths = 0;
+		int PlayerID = -1;
+		
+		for (int i = 0; i < MAX_CLIENTS; ++i) {
+			CPlayer* p = m_apPlayers[i];
+			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
+			if(MaxDeaths < p->m_Stats.m_Deaths){
+				MaxDeaths = p->m_Stats.m_Deaths;
+				PlayerID = i;
+			}
+		}
+		
+		if(PlayerID != -1){
+			char buff[300];
+			str_format(buff, sizeof(buff), "Trivia: %s was thrown %d time%s into spikes by the opponents, while being freezed.", Server()->ClientName(PlayerID), MaxDeaths, (MaxDeaths == 1 ? "" : "s"));
+			SendChat(-1, CGameContext::CHAT_ALL, buff);
+			TriviaSent = true;
+		}
+	}
+	//player that threw most opponents into golden spikes
+	else if(r == 10){
+		int MaxGold = 0;
+		int PlayerID = -1;
+		
+		for (int i = 0; i < MAX_CLIENTS; ++i) {
+			CPlayer* p = m_apPlayers[i];
+			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
+			if(MaxGold < p->m_Stats.m_GrabsGold){
+				MaxGold = p->m_Stats.m_GrabsGold;
+				PlayerID = i;
+			}
+		}
+		
+		if(PlayerID != -1){
+			char buff[300];
+			str_format(buff, sizeof(buff), "Trivia: %s threw %d time%s freezed opponents into golden spikes.", Server()->ClientName(PlayerID), MaxGold, (MaxGold == 1 ? "" : "s"));
+			SendChat(-1, CGameContext::CHAT_ALL, buff);
+			TriviaSent = true;
+		} else {
+			//send another trivia, bcs this is rare on maps without golden spikes
+			SendRandomTrivia();			
 			TriviaSent = true;
 		}
 	}
