@@ -660,7 +660,7 @@ int IGameController::GetAutoTeam(int NotThisID)
 
 bool IGameController::CanJoinTeam(int Team, int NotThisID)
 {
-	if(m_Config.m_SvTournamentMode) return false;
+	//if(m_Config.m_SvTournamentMode) return false;
 	
 	if(Team == TEAM_SPECTATORS || (GameServer()->m_apPlayers[NotThisID] && GameServer()->m_apPlayers[NotThisID]->GetTeam() != TEAM_SPECTATORS))
 		return true;
@@ -711,10 +711,10 @@ bool IGameController::CheckTeamBalance()
 
 bool IGameController::CanChangeTeam(CPlayer *pPlayer, int JoinTeam)
 {
-	if (m_Config.m_SvTournamentMode) {
+/*	if (m_Config.m_SvTournamentMode) {
 		GameServer()->SendChatTarget(pPlayer->GetCID(), "You can't change Teams in Tournaments.");
 		return false;
-	}
+	}*/
 	
 	int aT[2] = {0, 0};
 

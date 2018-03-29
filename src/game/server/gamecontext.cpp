@@ -641,12 +641,14 @@ void CGameContext::OnClientEnter(int ClientID)
 {
 	//world.insert_entity(&players[client_id]);
 	m_apPlayers[ClientID]->Respawn();
-	char aBuf[512];
-	str_format(aBuf, sizeof(aBuf), "'%s' entered and joined the %s", Server()->ClientName(ClientID), m_pController->GetTeamName(m_apPlayers[ClientID]->GetTeam()));
-	SendChat(-1, CGameContext::CHAT_ALL, aBuf);
+	if(!m_Config->m_SvTournamentMode || m_pController->IsGameOver()) {
+		char aBuf[512];
+		str_format(aBuf, sizeof(aBuf), "'%s' entered and joined the %s", Server()->ClientName(ClientID), m_pController->GetTeamName(m_apPlayers[ClientID]->GetTeam()));
+		SendChat(-1, CGameContext::CHAT_ALL, aBuf);
 
-	str_format(aBuf, sizeof(aBuf), "team_join player='%d:%s' team=%d", ClientID, Server()->ClientName(ClientID), m_apPlayers[ClientID]->GetTeam());
-	Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
+		str_format(aBuf, sizeof(aBuf), "team_join player='%d:%s' team=%d", ClientID, Server()->ClientName(ClientID), m_apPlayers[ClientID]->GetTeam());
+		Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
+	}
 
 	m_VoteUpdate = true;
 }
@@ -728,6 +730,14 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 
 			CNetMsg_Cl_Say *pMsg = (CNetMsg_Cl_Say *)pRawMsg;
 			int Team = pMsg->m_Team ? pPlayer->GetTeam() : CGameContext::CHAT_ALL;
+			
+			if(m_Config->m_SvTournamentMode) {
+				if(pPlayer->GetTeam() == TEAM_SPECTATORS && Team == CGameContext::CHAT_ALL && !m_pController->IsGameOver())
+				{					
+					SendChatTarget(ClientID, "Spectators aren't allowed to write to global chat during a tournament game.");
+					return;
+				}
+			}
 			
 			// trim right and set maximum length to 128 utf8-characters
 			int Length = 0;

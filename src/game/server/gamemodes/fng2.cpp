@@ -13,8 +13,7 @@ CGameControllerFNG2::CGameControllerFNG2(class CGameContext *pGameServer)
 	m_pGameType = "fng2";
 	m_GameFlags = GAMEFLAG_TEAMS;
 	
-	if(m_Config.m_SvTournamentMode) m_Warmup = 60*Server()->TickSpeed();
-	else m_Warmup = m_Config.m_SvWarmup;
+	m_Warmup = m_Config.m_SvWarmup;
 }
 
 CGameControllerFNG2::CGameControllerFNG2(class CGameContext *pGameServer, CConfiguration& pConfig)
@@ -23,8 +22,7 @@ CGameControllerFNG2::CGameControllerFNG2(class CGameContext *pGameServer, CConfi
 	m_pGameType = "fng2";
 	m_GameFlags = GAMEFLAG_TEAMS;
 	
-	if(m_Config.m_SvTournamentMode) m_Warmup = 60*Server()->TickSpeed();
-	else m_Warmup = m_Config.m_SvWarmup;
+	m_Warmup = m_Config.m_SvWarmup;
 }
 
 void CGameControllerFNG2::Tick()
@@ -32,12 +30,9 @@ void CGameControllerFNG2::Tick()
 	// do warmup
 	if(!GameServer()->m_World.m_Paused && m_Warmup)
 	{
-		if(m_Config.m_SvTournamentMode){
-		} else {
-			m_Warmup--;
-			if(!m_Warmup)
-				StartRound();
-		}
+		m_Warmup--;
+		if(!m_Warmup)
+			StartRound();
 	}
 
 	if(m_GameOverTick != -1)
@@ -46,6 +41,7 @@ void CGameControllerFNG2::Tick()
 		if(Server()->Tick() > m_GameOverTick+Server()->TickSpeed()*10)
 		{
 			if(m_Config.m_SvTournamentMode){
+				StartRound();
 			} else {
 				CycleMap();
 				StartRound();
@@ -177,13 +173,10 @@ void CGameControllerFNG2::DoWincheck()
 			if((m_Config.m_SvScorelimit > 0 && (m_aTeamscore[TEAM_RED] >= m_Config.m_SvScorelimit || m_aTeamscore[TEAM_BLUE] >= m_Config.m_SvScorelimit)) ||
 				(m_Config.m_SvTimelimit > 0 && (Server()->Tick()-m_RoundStartTick) >= m_Config.m_SvTimelimit*Server()->TickSpeed()*60))
 			{
-				if(m_Config.m_SvTournamentMode){
-				} else {
-					if(m_aTeamscore[TEAM_RED] != m_aTeamscore[TEAM_BLUE])
-						EndRound();
-					else
-						m_SuddenDeath = 1;
-				}
+				if(m_aTeamscore[TEAM_RED] != m_aTeamscore[TEAM_BLUE])
+					EndRound();
+				else
+					m_SuddenDeath = 1;
 			}			
 		}
 		else

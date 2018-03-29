@@ -522,7 +522,8 @@ void CCharacter::ResetInput()
 
 void CCharacter::Tick()
 {
-	if (m_InvincibleTick > 0) --m_InvincibleTick;
+	if (m_InvincibleTick > 0) 
+		--m_InvincibleTick;
 
 	if(m_pPlayer->m_ForceBalanced)
 	{
@@ -538,6 +539,9 @@ void CCharacter::Tick()
 
 	m_Core.m_Input = m_Input;
 	m_Core.Tick(true);
+
+	if (!m_Alive)
+		return;
 
 	// handle death-tiles and leaving gamelayer
 	if(GameServer()->Collision()->GetCollisionAt(m_Pos.x+m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_DEATH ||
