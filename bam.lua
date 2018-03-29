@@ -152,7 +152,12 @@ function build(settings)
 		settings.cc.flags:Add("/wd4244")
 		settings.cc.flags:Add("/utf-8")
 	else
+		settings.cc.flags:Add("-std=c++11")
 		settings.cc.flags:Add("-Wall", "-fno-exceptions")
+		settings.cc.flags:Add("-Wno-sign-compare")
+		settings.cc.flags:Add("-Wno-enum-compare")
+		settings.cc.flags:Add("-Wno-unused-variable")
+		settings.link.libs:Add("mysqlclient")
 		if family == "windows" then
 			-- disable visibility attribute support for gcc on windows
 			settings.cc.defines:Add("NO_VIZ")
@@ -183,9 +188,7 @@ function build(settings)
 		if platform == "solaris" then
 		    settings.link.flags:Add("-lsocket")
 		    settings.link.flags:Add("-lnsl")
-		end		
-		settings.cc.flags:Add("-std=c++11")
-		settings.link.libs:Add("mysqlclient")
+		end
 	elseif family == "windows" then
 		settings.link.libs:Add("gdi32")
 		settings.link.libs:Add("user32")
