@@ -55,6 +55,13 @@ static void StrRtrim(char *pStr)
 	}
 }
 
+sMap::~sMap() {
+	if (m_pCurrentMapData)
+		mem_free(m_pCurrentMapData);
+	if (m_pMap) {
+		delete m_pMap;
+	}
+}
 
 CSnapIDPool::CSnapIDPool()
 {

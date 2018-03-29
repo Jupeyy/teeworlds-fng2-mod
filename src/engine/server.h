@@ -32,13 +32,7 @@ struct sMap {
 	sMap() : m_pCurrentMapData(0), m_pMap(0), m_pNextMap(0) {
 	}
 	
-	~sMap() {
-		if(m_pCurrentMapData)
-			mem_free(m_pCurrentMapData);
-		if(m_pMap){
-			delete m_pMap;
-		}
-	}
+	~sMap();
 };
 
 class IServer : public IInterface

@@ -284,7 +284,7 @@ CLaserText::CLaserText(CGameWorld *pGameWorld, vec2 Pos, int Owner, int pAliveTi
 	for(int i = 0; i < m_TextLen; ++i){
 		for(int n = 0; n < 5; ++n){
 			for(int j = 0; j < 3; ++j){
-				if(asciiTable[m_Text[i]][n][j]){
+				if(asciiTable[(unsigned char)m_Text[i]][n][j]){
 					++m_CharNum;
 				}
 			}
@@ -322,7 +322,7 @@ CLaserText::CLaserText(CGameWorld *pGameWorld, vec2 Pos, int Owner, int pAliveTi
 	for(int i = 0; i < m_TextLen; ++i){
 		for(int n = 0; n < 5; ++n){
 			for(int j = 0; j < 3; ++j){
-				if(asciiTable[m_Text[i]][n][j]){
+				if(asciiTable[(unsigned char)m_Text[i]][n][j]){
 					++m_CharNum;
 				}
 			}
@@ -384,10 +384,10 @@ void CLaserText::makeLaser(char pChar, int pCharOffset, int& charCount){
 	
 	for(int n = 0; n < 5; ++n){
 		for(int j = 0; j < 3; ++j){
-			if(asciiTable[pChar][n][j]){
+			if(asciiTable[(unsigned char)pChar][n][j]){
 				neighbourCount[n][j] = 0;
-				neighbourCount[n][j] += NeighboursVert(asciiTable[pChar][n], j);
-				neighbourCount[n][j] += NeighboursHor(asciiTable[pChar], n, j);
+				neighbourCount[n][j] += NeighboursVert(asciiTable[(unsigned char)pChar][n], j);
+				neighbourCount[n][j] += NeighboursHor(asciiTable[(unsigned char)pChar], n, j);
 				tail[n][j] = 0;
 			} else tail[n][j] = (unsigned short)-1;
 		}
@@ -395,7 +395,7 @@ void CLaserText::makeLaser(char pChar, int pCharOffset, int& charCount){
 	
 	for(int n = 0; n < 5; ++n){
 		for(int j = 0; j < 3; ++j){
-			if(asciiTable[pChar][n][j]){
+			if(asciiTable[(unsigned char)pChar][n][j]){
 				//additional x, y offset to draw a line
 				int x = j, y = n;
 				int maxNeighbour = 0;
@@ -403,7 +403,7 @@ void CLaserText::makeLaser(char pChar, int pCharOffset, int& charCount){
 				bool forceLine = false;
 				
 				if(j > 0){
-					if(asciiTable[pChar][n][j - 1]){
+					if(asciiTable[(unsigned char)pChar][n][j - 1]){
 						if(tail[n][j - 1] != 0){
 							if(tail[n][j - 1] != (n << 8 | j)){
 								forceLine = true;
@@ -419,7 +419,7 @@ void CLaserText::makeLaser(char pChar, int pCharOffset, int& charCount){
 					}
 				}
 				if(!forceLine && j < 2){
-					if(asciiTable[pChar][n][j + 1]){
+					if(asciiTable[(unsigned char)pChar][n][j + 1]){
 						if(tail[n][j + 1] != 0){
 							if(tail[n][j + 1] != (n << 8 | j)){
 								forceLine = true;
@@ -435,7 +435,7 @@ void CLaserText::makeLaser(char pChar, int pCharOffset, int& charCount){
 					}
 				}	
 				if(!forceLine && n > 0){
-					if(asciiTable[pChar][n - 1][j]){
+					if(asciiTable[(unsigned char)pChar][n - 1][j]){
 						if(tail[n - 1][j] != 0){
 							if(tail[n - 1][j] != (n << 8 | j)){
 								forceLine = true;
@@ -451,7 +451,7 @@ void CLaserText::makeLaser(char pChar, int pCharOffset, int& charCount){
 					}
 				}
 				if(!forceLine && n < 4){
-					if(asciiTable[pChar][n + 1][j]){
+					if(asciiTable[(unsigned char)pChar][n + 1][j]){
 						if(tail[n + 1][j] != 0){
 							if(tail[n + 1][j] != (n << 8 | j)){
 								forceLine = true;

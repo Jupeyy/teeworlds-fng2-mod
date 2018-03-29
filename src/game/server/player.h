@@ -16,7 +16,7 @@ class CPlayer
 
 public:
 	CPlayer(CGameContext *pGameServer, int ClientID, int Team);
-	~CPlayer();
+	virtual ~CPlayer();
 
 	void Init(int CID);
 
