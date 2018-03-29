@@ -185,6 +185,7 @@ function build(settings)
 		    settings.link.flags:Add("-lnsl")
 		end		
 		settings.cc.flags:Add("-std=c++11")
+		settings.cc.flags:Add("-std=c11")
 		settings.link.libs:Add("mysqlclient")
 	elseif family == "windows" then
 		settings.link.libs:Add("gdi32")
