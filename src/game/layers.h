@@ -6,6 +6,8 @@
 #include <engine/map.h>
 #include <game/mapitems.h>
 
+#include <cstddef>
+
 class CLayers
 {
 	int m_GroupsNum;
@@ -18,7 +20,7 @@ class CLayers
 
 public:
 	CLayers();
-	void Init(class IKernel *pKernel, class IMap* pMap = 0x0);
+	void Init(class IKernel *pKernel, class IMap* pMap = NULL);
 	int NumGroups() const { return m_GroupsNum; };
 	class IMap *Map() const { return m_pMap; };
 	CMapItemGroup *GameGroup() const { return m_pGameGroup; };
