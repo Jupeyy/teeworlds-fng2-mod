@@ -19,7 +19,7 @@ config:Finalize("config.lua")
 
 -- data compiler
 function Script(name)
-	if family == "windows" then		
+	if family == "windows" then
 		return  "python " .. str_replace(name, "/", "\\")
 	end
 	return "python " .. name
@@ -141,10 +141,10 @@ end
 function build(settings)
 	-- apply compiler settings
 	config.compiler:Apply(settings)
-	
+
 	--settings.objdir = Path("objs")
 	settings.cc.Output = Intermediate_Output
-	
+
 	-- remove this line to remove features like database
 	settings.cc.defines:Add("ALL_FEATURES")
 
@@ -184,7 +184,7 @@ function build(settings)
 		else
 			settings.link.libs:Add("pthread")
 		end
-		
+
 		if platform == "solaris" then
 		    settings.link.flags:Add("-lsocket")
 		    settings.link.flags:Add("-lnsl")
@@ -212,6 +212,7 @@ function build(settings)
 	-- build the small libraries
 	wavpack = Compile(settings, Collect("src/engine/external/wavpack/*.c"))
 	pnglite = Compile(settings, Collect("src/engine/external/pnglite/*.c"))
+	md5 = Compile(settings, "src/engine/external/md5/md5.c")
 
 	-- build game components
 	engine_settings = settings:Copy()
@@ -270,16 +271,16 @@ function build(settings)
 	tools = {}
 	for i,v in ipairs(tools_src) do
 		toolname = PathFilename(PathBase(v))
-		tools[i] = Link(settings, toolname, Compile(settings, v), engine, zlib, pnglite)
+		tools[i] = Link(settings, toolname, Compile(settings, v), engine, zlib, pnglite, md5)
 	end
 
 	-- build client, server, version server and master server
 	client_exe = Link(client_settings, "teeworlds", game_shared, game_client,
 		engine, client, game_editor, zlib, pnglite, wavpack,
-		client_link_other, client_osxlaunch)
+		client_link_other, client_osxlaunch, md5)
 
 	server_exe = Link(server_settings, "fng2_srv", engine, server,
-		game_shared, game_server, zlib, server_link_other, mysql_tool)
+		game_shared, game_server, zlib, server_link_other, mysql_tool, md5)
 
 	serverlaunch = {}
 	if platform == "macosx" then
@@ -287,7 +288,7 @@ function build(settings)
 	end
 
 	versionserver_exe = Link(server_settings, "versionsrv", versionserver,
-		engine, zlib)
+		engine, zlib, md5)
 
 	masterserver_exe = Link(server_settings, "mastersrv", masterserver,
 		engine, zlib)
@@ -352,7 +353,7 @@ if platform == "macosx" then
 		release_settings_x86.cc.flags:Add("-arch i386")
 		release_settings_x86.link.flags:Add("-arch i386")
 		release_settings_x86.cc.defines:Add("CONF_RELEASE")
-	
+
 		x86_d = build(debug_settings_x86)
 		x86_r = build(release_settings_x86)
 	end
@@ -377,7 +378,7 @@ if platform == "macosx" then
 	end
 
 	DefaultTarget("game_debug_x86")
-	
+
 	if config.macosxppc.value == 1 then
 		if arch == "ia32" then
 			PseudoTarget("release", ppc_r, x86_r)
