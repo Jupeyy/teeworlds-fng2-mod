@@ -157,7 +157,7 @@ function build(settings)
 		settings.cc.flags:Add("-Wno-sign-compare")
 		settings.cc.flags:Add("-Wno-enum-compare")
 		settings.cc.flags:Add("-Wno-unused-variable")
-		settings.link.libs:Add("mysqlclient")
+		--settings.link.libs:Add("mysqlclient")
 		if family == "windows" then
 			-- disable visibility attribute support for gcc on windows
 			settings.cc.defines:Add("NO_VIZ")
