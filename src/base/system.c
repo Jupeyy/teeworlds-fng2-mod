@@ -40,6 +40,7 @@
 	#include <fcntl.h>
 	#include <direct.h>
 	#include <errno.h>
+	#include <Wincrypt.h>
 #else
 	#error NOT IMPLEMENTED
 #endif

@@ -151,6 +151,7 @@ function build(settings)
 	if config.compiler.driver == "cl" then
 		settings.cc.flags:Add("/wd4244")
 		settings.cc.flags:Add("/utf-8")
+		settings.link.libs:Add("Advapi32")
 	else
 		settings.cc.flags:Add("-std=c++11")
 		settings.cc.flags:Add("-Wall", "-fno-exceptions")

@@ -757,27 +757,9 @@ void CServer::DoSnapshot()
 	}
 }
 
-int CServer::NewClientNoAuthCallback(int ClientID, void *pUser)
+int CServer::NewClientCallbackImpl(int ClientID, void *pUser)
 {
 	CServer *pThis = (CServer *)pUser;
-	pThis->m_aClients[ClientID].m_State = CClient::STATE_CONNECTING;
-	pThis->m_aClients[ClientID].m_aName[0] = 0;
-	pThis->m_aClients[ClientID].m_aClan[0] = 0;
-	pThis->m_aClients[ClientID].m_Country = -1;
-	pThis->m_aClients[ClientID].m_Authed = AUTHED_NO;
-	pThis->m_aClients[ClientID].m_AuthTries = 0;
-	pThis->m_aClients[ClientID].m_pRconCmdToSend = 0;
-	pThis->m_aClients[ClientID].Reset();
-
-	pThis->SendMap(ClientID);
-
-	return 0;
-}
-
-int CServer::NewClientCallback(int ClientID, void *pUser)
-{
-	CServer *pThis = (CServer *)pUser;
-	pThis->m_aClients[ClientID].m_State = CClient::STATE_AUTH;
 	pThis->m_aClients[ClientID].m_aName[0] = 0;
 	pThis->m_aClients[ClientID].m_aClan[0] = 0;
 	pThis->m_aClients[ClientID].m_Country = -1;
@@ -788,8 +770,29 @@ int CServer::NewClientCallback(int ClientID, void *pUser)
 	pThis->m_aClients[ClientID].m_Traffic = 0;
 	pThis->m_aClients[ClientID].m_TrafficSince = 0;
 	pThis->m_aClients[ClientID].Reset();
+
 	++pThis->m_PlayerCount;
+
 	return 0;
+}
+
+int CServer::NewClientNoAuthCallback(int ClientID, void *pUser)
+{
+	CServer *pThis = (CServer *)pUser;
+	int r = NewClientCallbackImpl(ClientID, pUser);
+	pThis->m_aClients[ClientID].m_State = CClient::STATE_CONNECTING;
+
+	pThis->SendMap(ClientID);
+
+	return r;
+}
+
+int CServer::NewClientCallback(int ClientID, void *pUser)
+{
+	CServer *pThis = (CServer *)pUser;
+	int r = NewClientCallbackImpl(ClientID, pUser);
+	pThis->m_aClients[ClientID].m_State = CClient::STATE_AUTH;
+	return r;
 }
 
 int CServer::DelClientCallback(int ClientID, const char *pReason, void *pUser, bool ForceDisconnect)
@@ -825,7 +828,8 @@ int CServer::DelClientCallback(int ClientID, const char *pReason, void *pUser, b
 		pThis->m_aClients[ClientID].m_Snapshots.PurgeAll();
 		--pThis->m_PlayerCount;
 	}
-	else return -1;
+	else
+		return -1;
 	return 0;
 }
 
