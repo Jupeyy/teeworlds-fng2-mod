@@ -135,7 +135,7 @@ int CNetServer::Update()
 		m_aSlots[i].m_Connection.Update();
 		if(m_aSlots[i].m_Connection.State() == NET_CONNSTATE_ERROR)
 		{
-			Drop(i, m_aSlots[i].m_Connection.ErrorString());
+			Drop(i, m_aSlots[i].m_Connection.ErrorString(), false);
 		}
 	}
 
