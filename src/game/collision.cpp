@@ -30,7 +30,11 @@ void CCollision::Init(class CLayers *pLayers)
 	for(int i = 0; i < m_Width*m_Height; i++)
 	{
 		int Index = m_pTiles[i].m_Index;
-
+		
+		// backwards compatibility to old fng maps
+		if(Index >= 208 && Index <= 210)
+                        Index -= 200;
+		
 		if(Index > 128)
 			continue;
 
