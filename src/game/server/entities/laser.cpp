@@ -87,7 +87,7 @@ void CLaser::Reset()
 
 void CLaser::Tick()
 {
-	if(Server()->Tick() > m_EvalTick+(Server()->TickSpeed()*GameServer()->Tuning()->m_LaserBounceDelay)/1000.0f)
+	if((double)Server()->Tick() > (double)m_EvalTick+(Server()->TickSpeed()*(double)GameServer()->Tuning()->m_LaserBounceDelay)/1000.0)
 		DoBounce();
 }
 
