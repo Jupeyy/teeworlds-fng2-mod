@@ -758,7 +758,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				else if(pEnd == 0)
 					pEnd = pStrOld;
 
-				if(++Length >= 127)
+				if(++Length >= 256)
 				{
 					*(const_cast<char *>(p)) = 0;
 					break;
@@ -2534,19 +2534,53 @@ int CGameContext::SendPackMsg(CNetMsg_Sv_Chat *pMsg, int Flags)
 int CGameContext::SendPackMsg(CNetMsg_Sv_Chat *pMsg, int Flags, int ClientID)
 {
 	CPlayer* p = m_apPlayers[ClientID];
-	if (!p) return -1;
+	if (!p)
+		return -1;
 
 	int id = pMsg->m_ClientID;
+
 	int originalID = pMsg->m_ClientID;
 	const char* pOriginalText = pMsg->m_pMessage;
-	if (id > -1 && id < MAX_CLIENTS && !p->IsSnappingClient(pMsg->m_ClientID, p->m_ClientVersion, id)) {
-		str_format(msgbuf, sizeof(msgbuf), "%s: %s", Server()->ClientName(pMsg->m_ClientID), pMsg->m_pMessage);
 
+	bool ClientNotVisible = (id > -1 && id < MAX_CLIENTS && !p->IsSnappingClient(pMsg->m_ClientID, p->m_ClientVersion, id));
+
+	if(ClientNotVisible) {
 		pMsg->m_ClientID = (p->m_ClientVersion == CPlayer::CLIENT_VERSION_DDNET) ? CPlayer::DDNET_CLIENT_MAX_CLIENTS - 1 : CPlayer::VANILLA_CLIENT_MAX_CLIENTS - 1;
-		pMsg->m_pMessage = msgbuf;
 	}
-	else pMsg->m_ClientID = id;
-	Server()->SendPackMsg(pMsg, Flags, ClientID);
+	else
+		pMsg->m_ClientID = id;
+
+	//if not ddnet client, split the msg
+	if(p->m_ClientVersion == CPlayer::CLIENT_VERSION_DDNET)
+		Server()->SendPackMsg(pMsg, Flags, ClientID);
+	else {
+		int StrLen = str_length(pMsg->m_pMessage);
+
+		int StrOffset = 0;
+		while(StrLen >= (126 - MAX_NAME_LENGTH)) {
+			if(ClientNotVisible)
+				str_format(msgbuf, sizeof(msgbuf), "%s: %s", Server()->ClientName(originalID), (pMsg->m_pMessage + (intptr_t)StrOffset));
+			else
+				str_format(msgbuf, sizeof(msgbuf), "%s", (pMsg->m_pMessage + (intptr_t)StrOffset));
+			
+			msgbuf[126] = 0;
+			pMsg->m_pMessage = msgbuf;
+			Server()->SendPackMsg(pMsg, Flags, ClientID);
+
+			StrLen -= (126 - MAX_NAME_LENGTH);
+			StrOffset += (126 - MAX_NAME_LENGTH);
+		}
+
+		if(StrLen > 0) {
+			if(ClientNotVisible)
+				str_format(msgbuf, sizeof(msgbuf), "%s: %s", Server()->ClientName(originalID), (pMsg->m_pMessage + (intptr_t)StrOffset));
+			else
+				str_format(msgbuf, sizeof(msgbuf), "%s", (pMsg->m_pMessage + (intptr_t)StrOffset));
+			pMsg->m_pMessage = msgbuf;
+			Server()->SendPackMsg(pMsg, Flags, ClientID);
+		}
+	}
+
 	pMsg->m_ClientID = originalID;
 	pMsg->m_pMessage = pOriginalText;
 	return 0;
