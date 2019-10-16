@@ -71,7 +71,7 @@ public:
 	bool IsAlive() const { return m_Alive; }
 	class CPlayer *GetPlayer() { return m_pPlayer; }
 
-	bool IsFreezed();
+	bool IsFrozen();
 
 	void SetKiller(int pKillerID, unsigned int pHookTicks);
 
@@ -136,7 +136,7 @@ private:
 		int m_Duration;
 	} m_Freeze;
 
-	// killer, that freezed this character
+	// killer, that frozen this character
 	struct {
 		int m_KillerID;
 		unsigned int m_uiKillerHookTicks;

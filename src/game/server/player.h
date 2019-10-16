@@ -70,7 +70,7 @@ public:
 		int m_Selfkills;
 		int m_Teamkills;
 		int m_Unfreezes; //number of actual unfreezes of teammates
-		int m_UnfreezingHammerHits; //number of hammers to a freezed teammate
+		int m_UnfreezingHammerHits; //number of hammers to a frozen teammate
 		
 		int m_Shots; //the shots a player made
 	} m_Stats;

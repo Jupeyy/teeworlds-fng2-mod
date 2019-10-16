@@ -113,7 +113,7 @@ void CCharacter::Destroy()
 
 void CCharacter::SetWeapon(int W)
 {
-	if (!IsFreezed()) {
+	if (!IsFrozen()) {
 		if (W == m_ActiveWeapon)
 			return;
 
@@ -229,13 +229,13 @@ void CCharacter::HandleWeaponSwitch()
 	DoWeaponSwitch();
 }
 
-bool CCharacter::IsFreezed(){
+bool CCharacter::IsFrozen(){
 	return m_Freeze.m_ActivationTick != 0;
 }
 
 void CCharacter::FireWeapon()
 {
-	if(m_ReloadTimer != 0 || (IsFreezed() && m_Freeze.m_ActivationTick != Server()->Tick()))
+	if(m_ReloadTimer != 0 || (IsFrozen() && m_Freeze.m_ActivationTick != Server()->Tick()))
 		return;
 
 	DoWeaponSwitch();
@@ -425,7 +425,7 @@ bool CCharacter::GiveWeapon(int Weapon, int Ammo)
 }
 
 void CCharacter::Freeze(int TimeInSec) {
-	if(!IsFreezed())m_LastWeapon = m_ActiveWeapon;
+	if(!IsFrozen())m_LastWeapon = m_ActiveWeapon;
 	m_Freeze.m_ActivationTick = Server()->Tick();
 	m_Freeze.m_Duration = TimeInSec;
 	
@@ -470,7 +470,7 @@ void CCharacter::SetKiller(int pKillerID, unsigned int pHookTicks) {
 
 void CCharacter::OnPredictedInput(CNetObj_PlayerInput *pNewInput)
 {
-	if (IsFreezed()) {
+	if (IsFrozen()) {
 		pNewInput->m_Direction = 0;
 		pNewInput->m_Jump = 0;
 		pNewInput->m_Fire = 0;
@@ -691,13 +691,13 @@ void CCharacter::TickDefered()
 	m_pPlayer->m_Stats.m_NumTeeCollisions += m_Core.m_CoreStats.m_NumTeeCollisions;
 	mem_zero(&m_Core.m_CoreStats, sizeof(m_Core.m_CoreStats));
 	
-	if(IsFreezed() && m_Freeze.m_ActivationTick != Server()->Tick()) ++m_pPlayer->m_Stats.m_NumFreezeTicks;
+	if(IsFrozen() && m_Freeze.m_ActivationTick != Server()->Tick()) ++m_pPlayer->m_Stats.m_NumFreezeTicks;
 }
 
 void CCharacter::TickPaused()
 {
 	++m_AttackTick;
-	if(IsFreezed()) ++m_Freeze.m_ActivationTick;
+	if(IsFrozen()) ++m_Freeze.m_ActivationTick;
 	++m_ReckoningTick;
 	if(m_LastAction != -1)
 		++m_LastAction;
@@ -772,7 +772,7 @@ void CCharacter::DieSpikes(int pPlayerID, int spikes_flag) {
 	// if the player leaves the game, he will be nullptr and we handle it like a selfkill
 	if (pPlayerID == -1 || GameServer()->m_apPlayers[pPlayerID] == 0) pPlayerID = m_pPlayer->GetCID();
 
-	if (!IsFreezed() || pPlayerID == m_pPlayer->GetCID()) Weapon = WEAPON_WORLD;
+	if (!IsFrozen() || pPlayerID == m_pPlayer->GetCID()) Weapon = WEAPON_WORLD;
 
 	int ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[pPlayerID], Weapon);
 
@@ -784,7 +784,7 @@ void CCharacter::DieSpikes(int pPlayerID, int spikes_flag) {
 			m_pPlayer->GetCID(), Server()->ClientName(m_pPlayer->GetCID()), Weapon, ModeSpecial);
 		GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 
-		if (IsFreezed() && pPlayerID != m_pPlayer->GetCID()) {
+		if (IsFrozen() && pPlayerID != m_pPlayer->GetCID()) {
 			// send the kill message
 			CNetMsg_Sv_KillMsg Msg;
 			Msg.m_Killer = pPlayerID;
@@ -795,7 +795,7 @@ void CCharacter::DieSpikes(int pPlayerID, int spikes_flag) {
 
 			if (GameServer()->m_pController->IsTeamplay() && IsFalseSpike(GameServer()->m_apPlayers[pPlayerID]->GetTeam(), spikes_flag)) {
 				CCharacter* pKiller = ((CPlayer*)GameServer()->m_apPlayers[pPlayerID])->GetCharacter();
-				if (pKiller && !pKiller->IsFreezed()) {
+				if (pKiller && !pKiller->IsFrozen()) {
 					pKiller->Freeze(g_Config.m_SvFalseSpikeFreeze);
 					GameServer()->CreateSound(pKiller->m_Pos, SOUND_TEE_CRY);
 				}
@@ -817,7 +817,7 @@ void CCharacter::DieSpikes(int pPlayerID, int spikes_flag) {
 				}
 			}
 		}
-		//if not freezed or selfkill
+		//if not frozen or selfkill
 		else {
 			// send the kill message
 			CNetMsg_Sv_KillMsg Msg;
@@ -882,7 +882,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 
 	CPlayer *pPlayer = GameServer()->m_apPlayers[From];
 
-	if ((Weapon == WEAPON_RIFLE || Weapon == WEAPON_GRENADE) && !IsFreezed()) {
+	if ((Weapon == WEAPON_RIFLE || Weapon == WEAPON_GRENADE) && !IsFrozen()) {
 		if ((GameServer()->m_pController->IsFriendlyFire(m_pPlayer->GetCID(), From) && !g_Config.m_SvTeamdamage) || From == m_pPlayer->GetCID()) {
 			if (From == m_pPlayer->GetCID()) {
 				//don't loose nades, when hitting yourself
@@ -927,7 +927,7 @@ void CCharacter::TakeHammerHit(CCharacter* pFrom)
 		Dir = vec2(0.f, -1.f);
 
 	vec2 Push = vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f;
-	if (GameServer()->m_pController->IsTeamplay() && pFrom->GetPlayer() && m_pPlayer->GetTeam() == pFrom->GetPlayer()->GetTeam() && IsFreezed()) {
+	if (GameServer()->m_pController->IsTeamplay() && pFrom->GetPlayer() && m_pPlayer->GetTeam() == pFrom->GetPlayer()->GetTeam() && IsFrozen()) {
 		Push.x *= g_Config.m_SvMeltHammerScaleX*0.01f;
 		Push.y *= g_Config.m_SvMeltHammerScaleY*0.01f;
 	}
@@ -942,7 +942,7 @@ void CCharacter::TakeHammerHit(CCharacter* pFrom)
 	if (pPlayer && (GameServer()->m_pController->IsTeamplay() && pPlayer->GetTeam() == m_pPlayer->GetTeam())) {
 		m_Killer.m_uiKillerHookTicks = 0;
 		m_Killer.m_KillerID = m_pPlayer->GetCID();
-		if (IsFreezed()) {
+		if (IsFrozen()) {
 			if (((float)m_Freeze.m_Duration - (float)(Server()->Tick() - m_Freeze.m_ActivationTick - 1) / (float)Server()->TickSpeed()) < 3.f) {
 				Unfreeze(pPlayer->GetCID());
 			}
@@ -998,7 +998,7 @@ void CCharacter::Snap(int SnappingClient)
 	pCharacter->m_Health = 0;
 	pCharacter->m_Armor = 0;
 	
-	if(GameServer()->m_pController->UseFakeTeams() && IsFreezed()){
+	if(GameServer()->m_pController->UseFakeTeams() && IsFrozen()){
 		pCharacter->m_Weapon = WEAPON_GUN;
 	} else pCharacter->m_Weapon = m_ActiveWeapon;
 	pCharacter->m_AttackTick = m_AttackTick;

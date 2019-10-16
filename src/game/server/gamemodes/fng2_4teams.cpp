@@ -503,7 +503,7 @@ int CGameControllerFNG24Teams::OnCharacterDeath(class CCharacter *pVictim, class
 			m_a4Teamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeGold;
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
 			if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeGold);
-		} else if(Weapon == WEAPON_HAMMER){ //only called if team mate unfreezed you
+		} else if(Weapon == WEAPON_HAMMER){ //only called if team mate unfroze you
 			pKiller->m_Stats.m_Unfreezes++;
 		}
 	}
@@ -899,7 +899,7 @@ void CGameControllerFNG24Teams::CmdJoinTeam(CGameContext* pContext, int pClientI
 		}
 		
 		CPlayer* pPlayer = pContext->m_apPlayers[pClientID];
-		if ((pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsFreezed()) || (pPlayer->GetTeam() == Team || (pContext->m_pController->GetConfig()->m_SvSpamprotection && pPlayer->m_LastSetTeam && pPlayer->m_LastSetTeam + pContext->Server()->TickSpeed() * 3 > pContext->Server()->Tick())))
+		if ((pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsFrozen()) || (pPlayer->GetTeam() == Team || (pContext->m_pController->GetConfig()->m_SvSpamprotection && pPlayer->m_LastSetTeam && pPlayer->m_LastSetTeam + pContext->Server()->TickSpeed() * 3 > pContext->Server()->Tick())))
 			return;
 		
 		if(pPlayer->m_TeamChangeTick > pContext->Server()->Tick())

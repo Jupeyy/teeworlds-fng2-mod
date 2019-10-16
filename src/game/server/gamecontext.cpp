@@ -472,7 +472,7 @@ void CGameContext::SendTuningParams(int ClientID)
 	Server()->SendMsg(&Msg, MSGFLAG_VITAL, ClientID);
 }
 
-//tune for freezed tees
+//tune for frozen tees
 void CGameContext::SendFakeTuningParams(int ClientID)
 {
 	static CTuningParams FakeTuning;
@@ -686,7 +686,7 @@ void CGameContext::OnClientConnected(int ClientID)
 
 bool CGameContext::OnClientDrop(int ClientID, const char *pReason, bool Force)
 {
-	if (m_apPlayers[ClientID]->GetCharacter() && m_apPlayers[ClientID]->GetCharacter()->IsFreezed() && !m_pController->IsGameOver() && !Force) return false;
+	if (m_apPlayers[ClientID]->GetCharacter() && m_apPlayers[ClientID]->GetCharacter()->IsFrozen() && !m_pController->IsGameOver() && !Force) return false;
 
 	AbortVoteKickOnDisconnect(ClientID);
 	m_apPlayers[ClientID]->OnDisconnect(pReason);
@@ -962,7 +962,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		{
 			CNetMsg_Cl_SetTeam *pMsg = (CNetMsg_Cl_SetTeam *)pRawMsg;
 
-			if ((pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsFreezed()) || (pPlayer->GetTeam() == pMsg->m_Team || (m_Config->m_SvSpamprotection && pPlayer->m_LastSetTeam && pPlayer->m_LastSetTeam + Server()->TickSpeed() * 3 > Server()->Tick())))
+			if ((pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsFrozen()) || (pPlayer->GetTeam() == pMsg->m_Team || (m_Config->m_SvSpamprotection && pPlayer->m_LastSetTeam && pPlayer->m_LastSetTeam + Server()->TickSpeed() * 3 > Server()->Tick())))
 				return;
 
 			if(pMsg->m_Team != TEAM_SPECTATORS && m_LockTeams)
@@ -1082,7 +1082,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		}
 		else if (MsgID == NETMSGTYPE_CL_KILL && !m_World.m_Paused)
 		{
-			if((pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsFreezed()) || (pPlayer->m_LastKill && pPlayer->m_LastKill+Server()->TickSpeed()*m_Config->m_SvKillDelay > Server()->Tick()) || m_Config->m_SvKillDelay == -1)
+			if((pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsFrozen()) || (pPlayer->m_LastKill && pPlayer->m_LastKill+Server()->TickSpeed()*m_Config->m_SvKillDelay > Server()->Tick()) || m_Config->m_SvKillDelay == -1)
 				return;
 
 			pPlayer->m_LastKill = Server()->Tick();
@@ -1279,11 +1279,11 @@ void CGameContext::CmdStats(CGameContext* pContext, int pClientID, const char** 
 		"║Kills(team spikes): %d\n"
 		"║Kills(golden spikes): %d\n"
 		"║Kills(false spikes): %d\n"
-		"║Spike deaths(while freezed): %d\n"
+		"║Spike deaths(while frozen): %d\n"
 		"║\n"
 		"╠═══════════ Misc ══════════\n"
 		"║\n"
-		"║Mates hammer-/unfreezed: %d/%d\n"
+		"║Mates hammer-/unfrozen: %d/%d\n"
 		"║\n"
 		"╚══════════════════════════\n", p->m_Stats.m_Kills, p->m_Stats.m_Hits, (p->m_Stats.m_Hits != 0) ? (float)((float)p->m_Stats.m_Kills / (float)p->m_Stats.m_Hits) : (float)p->m_Stats.m_Kills, p->m_Stats.m_Shots, ((float)p->m_Stats.m_Kills / (float)(p->m_Stats.m_Shots == 0 ? 1: p->m_Stats.m_Shots)) * 100.f, p->m_Stats.m_GrabsNormal, p->m_Stats.m_GrabsTeam, p->m_Stats.m_GrabsGold, p->m_Stats.m_GrabsFalse, p->m_Stats.m_Deaths, p->m_Stats.m_UnfreezingHammerHits, p->m_Stats.m_Unfreezes);
 
@@ -2121,12 +2121,12 @@ void CGameContext::SendRoundStats() {
 		SendChatTarget(i, buff);
 		str_format(buff, 300, "║Kills(false spikes): %d", p->m_Stats.m_GrabsFalse);
 		SendChatTarget(i, buff);
-		str_format(buff, 300, "║Spike deaths(while freezed): %d", p->m_Stats.m_Deaths);
+		str_format(buff, 300, "║Spike deaths(while frozen): %d", p->m_Stats.m_Deaths);
 		SendChatTarget(i, buff);
 		SendChatTarget(i, "║");
 		SendChatTarget(i, "╠═══════════ Misc ══════════");
 		SendChatTarget(i, "║");
-		str_format(buff, 300, "║Teammates hammered/unfreezed: %d / %d", p->m_Stats.m_UnfreezingHammerHits, p->m_Stats.m_Unfreezes);
+		str_format(buff, 300, "║Teammates hammered/unfrozen: %d / %d", p->m_Stats.m_UnfreezingHammerHits, p->m_Stats.m_Unfreezes);
 		SendChatTarget(i, buff);
 		SendChatTarget(i, "║");
 		SendChatTarget(i, "╚══════════════════════════");
@@ -2348,12 +2348,12 @@ void CGameContext::SendRandomTrivia(){
 		
 		if(PlayerID != -1){
 			char buff[300];
-			str_format(buff, sizeof(buff), "Trivia: %s was freezed for %4.2f seconds total this round.", Server()->ClientName(PlayerID), (float)MaxFreezeTicks/(float)Server()->TickSpeed());
+			str_format(buff, sizeof(buff), "Trivia: %s was frozen for %4.2f seconds total this round.", Server()->ClientName(PlayerID), (float)MaxFreezeTicks/(float)Server()->TickSpeed());
 			SendChat(-1, CGameContext::CHAT_ALL, buff);
 			TriviaSent = true;
 		}
 	}
-	//player with most hammers to freezed teammates
+	//player with most hammers to frozen teammates
 	else if(r == 6){
 		int MaxUnfreezeHammers = 0;
 		int PlayerID = -1;
@@ -2369,7 +2369,7 @@ void CGameContext::SendRandomTrivia(){
 		
 		if(PlayerID != -1){
 			char buff[300];
-			str_format(buff, sizeof(buff), "Trivia: %s hammered %d freezed teammate%s.", Server()->ClientName(PlayerID), MaxUnfreezeHammers, (MaxUnfreezeHammers == 1 ? "" : "s"));
+			str_format(buff, sizeof(buff), "Trivia: %s hammered %d frozen teammate%s.", Server()->ClientName(PlayerID), MaxUnfreezeHammers, (MaxUnfreezeHammers == 1 ? "" : "s"));
 			SendChat(-1, CGameContext::CHAT_ALL, buff);
 			TriviaSent = true;
 		}
@@ -2432,7 +2432,7 @@ void CGameContext::SendRandomTrivia(){
 		
 		if(PlayerID != -1){
 			char buff[300];
-			str_format(buff, sizeof(buff), "Trivia: %s was thrown %d time%s into spikes by the opponents, while being freezed.", Server()->ClientName(PlayerID), MaxDeaths, (MaxDeaths == 1 ? "" : "s"));
+			str_format(buff, sizeof(buff), "Trivia: %s was thrown %d time%s into spikes by the opponents, while being frozen.", Server()->ClientName(PlayerID), MaxDeaths, (MaxDeaths == 1 ? "" : "s"));
 			SendChat(-1, CGameContext::CHAT_ALL, buff);
 			TriviaSent = true;
 		}
@@ -2453,7 +2453,7 @@ void CGameContext::SendRandomTrivia(){
 		
 		if(PlayerID != -1){
 			char buff[300];
-			str_format(buff, sizeof(buff), "Trivia: %s threw %d time%s freezed opponents into golden spikes.", Server()->ClientName(PlayerID), MaxGold, (MaxGold == 1 ? "" : "s"));
+			str_format(buff, sizeof(buff), "Trivia: %s threw %d time%s frozen opponents into golden spikes.", Server()->ClientName(PlayerID), MaxGold, (MaxGold == 1 ? "" : "s"));
 			SendChat(-1, CGameContext::CHAT_ALL, buff);
 			TriviaSent = true;
 		} else {

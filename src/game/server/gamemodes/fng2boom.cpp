@@ -300,7 +300,7 @@ int CGameControllerFNG2Boom::OnCharacterDeath(class CCharacter *pVictim, class C
 			m_aTeamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeGold;
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
 			if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeGold);
-		} else if(Weapon == WEAPON_HAMMER){ //only called if team mate unfreezed you
+		} else if(Weapon == WEAPON_HAMMER){ //only called if team mate unfroze you
 			pKiller->m_Stats.m_Unfreezes++;
 		}
 	}

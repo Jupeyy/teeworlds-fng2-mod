@@ -31,16 +31,16 @@ AND DON'T FORGOT TO UPDATE YOUR .cfg -> sv_max_clients and your specator slot vo
 
 start.sh is a automatic restart script for linux... start it as screen ./start.sh. You maybe need to write chmod 700 ./start.sh first
 
-What is new towards openfng?
+What is new compared to openfng?
 -Golden Spikes
 -Support for upto 256 players
 -New Score Display (sv_score_display) that calculates points based on all stats(deaths, hits etc.)
--Smooth Freeze Mode(sv_smooth_freeze_mode), to make being freezed more smooth(no input movement)
+-Smooth Freeze Mode(sv_smooth_freeze_mode), to make being frozen more smooth(no input movement)
 -Emotional tees(sv_emotional_tees, and sv_emote_wheel for ddnet client) to enable ddrace like eye emotions
 -sv_highbandwith to enable high map download
 -server commands: stats, whisper, emote etc.
 -generally better DDNet support(like whisper command)
--no bans when leaving, while being freezed. The character does not getting killed and can be killed into spikes
+-no bans when leaving, while being frozen. The character does not getting killed and can be killed into spikes
 
 --for modding possibilities, you can start more than 1 gameserver too
 see the standard fng.cfg to see some features

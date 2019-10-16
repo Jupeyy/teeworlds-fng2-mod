@@ -160,7 +160,7 @@ void CPlayer::Snap(int SnappingClient)
 	StrToInts(&pClientInfo->m_Name0, 4, Server()->ClientName(m_ClientID));
 	StrToInts(&pClientInfo->m_Clan0, 3, Server()->ClientClan(m_ClientID));
 	pClientInfo->m_Country = Server()->ClientCountry(m_ClientID);
-	if(GameServer()->m_pController->UseFakeTeams() && m_pCharacter && m_pCharacter->IsFreezed()){
+	if(GameServer()->m_pController->UseFakeTeams() && m_pCharacter && m_pCharacter->IsFrozen()){
 		StrToInts(&pClientInfo->m_Skin0, 6, "pinky");
 		pClientInfo->m_UseCustomColor = m_TeeInfos.m_UseCustomColor;
 		pClientInfo->m_ColorBody = 0;
@@ -286,7 +286,7 @@ CCharacter *CPlayer::GetCharacter()
 
 void CPlayer::KillCharacter(int Weapon, bool forced)
 {
-	if(m_pCharacter && (!m_pCharacter->IsFreezed() || forced))
+	if(m_pCharacter && (!m_pCharacter->IsFrozen() || forced))
 	{
 		m_pCharacter->Die(m_ClientID, Weapon);
 		delete m_pCharacter;
