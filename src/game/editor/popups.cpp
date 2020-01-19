@@ -1,6 +1,7 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 
+#include <base/color.h>
 #include <base/tl/array.h>
 
 #include <engine/console.h>
@@ -49,7 +50,7 @@ void CEditor::UiDoPopupMenu()
 		bool Inside = UI()->MouseInside(&s_UiPopups[i].m_Rect);
 		UI()->SetHotItem(&s_UiPopups[i].m_pId);
 
-		if(UI()->ActiveItem() == &s_UiPopups[i].m_pId)
+		if(UI()->CheckActiveItem(&s_UiPopups[i].m_pId))
 		{
 			if(!UI()->MouseButton(0))
 			{
@@ -80,7 +81,7 @@ void CEditor::UiDoPopupMenu()
 			UI()->SetActiveItem(0);
 		}
 
-		if(Input()->KeyDown(KEY_ESCAPE))
+		if(Input()->KeyPress(KEY_ESCAPE))
 		{
 			g_UiNumPopups--;
 			UI()->SetActiveItem(0);
@@ -147,7 +148,7 @@ int CEditor::PopupGroup(CEditor *pEditor, CUIRect View)
 		}
 	}
 
-	// new tile layer
+	// new quad layer
 	View.HSplitBottom(10.0f, &View, &Button);
 	View.HSplitBottom(12.0f, &View, &Button);
 	static int s_NewQuadLayerButton = 0;
@@ -161,13 +162,13 @@ int CEditor::PopupGroup(CEditor *pEditor, CUIRect View)
 		return 1;
 	}
 
-	// new quad layer
+	// new tile layer
 	View.HSplitBottom(5.0f, &View, &Button);
 	View.HSplitBottom(12.0f, &View, &Button);
 	static int s_NewTileLayerButton = 0;
 	if(pEditor->DoButton_Editor(&s_NewTileLayerButton, "Add tile layer", 0, &Button, 0, "Creates a new tile layer"))
 	{
-		CLayer *l = new CLayerTiles(50, 50);
+		CLayer *l = new CLayerTiles(pEditor->m_Map.m_pGameLayer->m_Width, pEditor->m_Map.m_pGameLayer->m_Height);
 		l->m_pEditor = pEditor;
 		pEditor->m_Map.m_lGroups[pEditor->m_SelectedGroup]->AddLayer(l);
 		pEditor->m_SelectedLayer = pEditor->m_Map.m_lGroups[pEditor->m_SelectedGroup]->m_lLayers.size()-1;
@@ -181,7 +182,7 @@ int CEditor::PopupGroup(CEditor *pEditor, CUIRect View)
 		View.HSplitBottom(5.0f, &View, &Button);
 		View.HSplitBottom(12.0f, &View, &Button);
 		static float s_Name = 0;
-		pEditor->UI()->DoLabel(&Button, "Name:", 10.0f, -1, -1);
+		pEditor->UI()->DoLabel(&Button, "Name:", 10.0f, CUI::ALIGN_LEFT);
 		Button.VSplitLeft(40.0f, 0, &Button);
 		if(pEditor->DoEditBox(&s_Name, &Button, pEditor->m_Map.m_lGroups[pEditor->m_SelectedGroup]->m_aName, sizeof(pEditor->m_Map.m_lGroups[pEditor->m_SelectedGroup]->m_aName), 10.0f, &s_Name))
 			pEditor->m_Map.m_Modified = true;
@@ -269,7 +270,7 @@ int CEditor::PopupLayer(CEditor *pEditor, CUIRect View)
 		View.HSplitBottom(5.0f, &View, &Button);
 		View.HSplitBottom(12.0f, &View, &Button);
 		static float s_Name = 0;
-		pEditor->UI()->DoLabel(&Button, "Name:", 10.0f, -1, -1);
+		pEditor->UI()->DoLabel(&Button, "Name:", 10.0f, CUI::ALIGN_LEFT);
 		Button.VSplitLeft(40.0f, 0, &Button);
 		if(pEditor->DoEditBox(&s_Name, &Button, pEditor->GetSelectedLayer(0)->m_aName, sizeof(pEditor->GetSelectedLayer(0)->m_aName), 10.0f, &s_Name))
 			pEditor->m_Map.m_Modified = true;
@@ -399,8 +400,8 @@ int CEditor::PopupQuad(CEditor *pEditor, CUIRect View)
 	// square button
 	View.HSplitBottom(6.0f, &View, &Button);
 	View.HSplitBottom(12.0f, &View, &Button);
-	static int s_Button = 0;
-	if(pEditor->DoButton_Editor(&s_Button, "Square", 0, &Button, 0, "Squares the current quad"))
+	static int s_SquareButton = 0;
+	if(pEditor->DoButton_Editor(&s_SquareButton, "Square", 0, &Button, 0, "Squares the current quad"))
 	{
 		int Top = pQuad->m_aPoints[0].y;
 		int Left = pQuad->m_aPoints[0].x;
@@ -423,6 +424,30 @@ int CEditor::PopupQuad(CEditor *pEditor, CUIRect View)
 		return 1;
 	}
 
+	// center pivot button
+	View.HSplitBottom(6.0f, &View, &Button);
+	View.HSplitBottom(12.0f, &View, &Button);
+	static int s_CenterButton = 0;
+	if(pEditor->DoButton_Editor(&s_CenterButton, "Center pivot", 0, &Button, 0, "Centers the pivot of the current quad"))
+	{
+		int Top = pQuad->m_aPoints[0].y;
+		int Left = pQuad->m_aPoints[0].x;
+		int Bottom = pQuad->m_aPoints[0].y;
+		int Right = pQuad->m_aPoints[0].x;
+
+		for(int k = 1; k < 4; k++)
+		{
+			if(pQuad->m_aPoints[k].y < Top) Top = pQuad->m_aPoints[k].y;
+			if(pQuad->m_aPoints[k].x < Left) Left = pQuad->m_aPoints[k].x;
+			if(pQuad->m_aPoints[k].y > Bottom) Bottom = pQuad->m_aPoints[k].y;
+			if(pQuad->m_aPoints[k].x > Right) Right = pQuad->m_aPoints[k].x;
+		}
+
+		pQuad->m_aPoints[4].x = Left+int((Right-Left)/2);
+		pQuad->m_aPoints[4].y = Top+int((Bottom-Top)/2);
+		pEditor->m_Map.m_Modified = true;
+		return 1;
+	}
 
 	enum
 	{
@@ -436,8 +461,8 @@ int CEditor::PopupQuad(CEditor *pEditor, CUIRect View)
 	};
 
 	CProperty aProps[] = {
-		{"Pos X", pQuad->m_aPoints[4].x/1000, PROPTYPE_INT_SCROLL, -1000000, 1000000},
-		{"Pos Y", pQuad->m_aPoints[4].y/1000, PROPTYPE_INT_SCROLL, -1000000, 1000000},
+		{"Pos X", fx2i(pQuad->m_aPoints[4].x), PROPTYPE_INT_SCROLL, -1000000, 1000000},
+		{"Pos Y", fx2i(pQuad->m_aPoints[4].y), PROPTYPE_INT_SCROLL, -1000000, 1000000},
 		{"Pos. Env", pQuad->m_PosEnv+1, PROPTYPE_INT_STEP, 0, pEditor->m_Map.m_lEnvelopes.size()+1},
 		{"Pos. TO", pQuad->m_PosEnvOffset, PROPTYPE_INT_SCROLL, -1000000, 1000000},
 		{"Color Env", pQuad->m_ColorEnv+1, PROPTYPE_INT_STEP, 0, pEditor->m_Map.m_lEnvelopes.size()+1},
@@ -454,13 +479,13 @@ int CEditor::PopupQuad(CEditor *pEditor, CUIRect View)
 
 	if(Prop == PROP_POS_X)
 	{
-		float Offset = NewVal*1000-pQuad->m_aPoints[4].x;
+		float Offset = i2fx(NewVal)-pQuad->m_aPoints[4].x;
 		for(int k = 0; k < 5; ++k)
 			pQuad->m_aPoints[k].x += Offset;
 	}
 	if(Prop == PROP_POS_Y)
 	{
-		float Offset = NewVal*1000-pQuad->m_aPoints[4].y;
+		float Offset = i2fx(NewVal)-pQuad->m_aPoints[4].y;
 		for(int k = 0; k < 5; ++k)
 			pQuad->m_aPoints[k].y += Offset;
 	}
@@ -507,11 +532,14 @@ int CEditor::PopupPoint(CEditor *pEditor, CUIRect View)
 		PROP_POS_X=0,
 		PROP_POS_Y,
 		PROP_COLOR,
+		PROP_TEX_U,
+		PROP_TEX_V,
 		NUM_PROPS,
 	};
 
 	int Color = 0;
 	int x = 0, y = 0;
+	int tu = 0, tv = 0;
 
 	for(int v = 0; v < 4; v++)
 	{
@@ -523,8 +551,10 @@ int CEditor::PopupPoint(CEditor *pEditor, CUIRect View)
 			Color |= pQuad->m_aColors[v].b<<8;
 			Color |= pQuad->m_aColors[v].a;
 
-			x = pQuad->m_aPoints[v].x/1000;
-			y = pQuad->m_aPoints[v].y/1000;
+			x = fx2i(pQuad->m_aPoints[v].x);
+			y = fx2i(pQuad->m_aPoints[v].y);
+			tu = fx2f(pQuad->m_aTexcoords[v].x)*1024;
+			tv = fx2f(pQuad->m_aTexcoords[v].y)*1024;
 		}
 	}
 
@@ -533,6 +563,8 @@ int CEditor::PopupPoint(CEditor *pEditor, CUIRect View)
 		{"Pos X", x, PROPTYPE_INT_SCROLL, -1000000, 1000000},
 		{"Pos Y", y, PROPTYPE_INT_SCROLL, -1000000, 1000000},
 		{"Color", Color, PROPTYPE_COLOR, -1, pEditor->m_Map.m_lEnvelopes.size()},
+		{"Tex U", tu, PROPTYPE_INT_SCROLL, -1000000, 1000000},
+		{"Tex V", tv, PROPTYPE_INT_SCROLL, -1000000, 1000000},
 		{0},
 	};
 
@@ -546,13 +578,13 @@ int CEditor::PopupPoint(CEditor *pEditor, CUIRect View)
 	{
 		for(int v = 0; v < 4; v++)
 			if(pEditor->m_SelectedPoints&(1<<v))
-				pQuad->m_aPoints[v].x = NewVal*1000;
+				pQuad->m_aPoints[v].x = i2fx(NewVal);
 	}
 	if(Prop == PROP_POS_Y)
 	{
 		for(int v = 0; v < 4; v++)
 			if(pEditor->m_SelectedPoints&(1<<v))
-				pQuad->m_aPoints[v].y = NewVal*1000;
+				pQuad->m_aPoints[v].y = i2fx(NewVal);
 	}
 	if(Prop == PROP_COLOR)
 	{
@@ -567,6 +599,18 @@ int CEditor::PopupPoint(CEditor *pEditor, CUIRect View)
 			}
 		}
 	}
+	if(Prop == PROP_TEX_U)
+	{
+		for(int v = 0; v < 4; v++)
+			if(pEditor->m_SelectedPoints&(1<<v))
+				pQuad->m_aTexcoords[v].x = f2fx(NewVal/1024.0f);
+	}
+	if(Prop == PROP_TEX_V)
+	{
+		for(int v = 0; v < 4; v++)
+			if(pEditor->m_SelectedPoints&(1<<v))
+				pQuad->m_aTexcoords[v].y = f2fx(NewVal/1024.0f);
+	}
 
 	return 0;
 }
@@ -578,7 +622,7 @@ int CEditor::PopupNewFolder(CEditor *pEditor, CUIRect View)
 	// title
 	View.HSplitTop(10.0f, 0, &View);
 	View.HSplitTop(30.0f, &Label, &View);
-	pEditor->UI()->DoLabel(&Label, "Create new folder", 20.0f, 0);
+	pEditor->UI()->DoLabel(&Label, "Create new folder", 20.0f, CUI::ALIGN_CENTER);
 
 	View.HSplitBottom(10.0f, &View, 0);
 	View.HSplitBottom(20.0f, &View, &ButtonBar);
@@ -592,7 +636,7 @@ int CEditor::PopupNewFolder(CEditor *pEditor, CUIRect View)
 		static float s_FolderBox = 0;
 		pEditor->DoEditBox(&s_FolderBox, &Label, pEditor->m_FileDialogNewFolderName, sizeof(pEditor->m_FileDialogNewFolderName), 15.0f, &s_FolderBox);
 		View.HSplitBottom(20.0f, &View, &Label);
-		pEditor->UI()->DoLabel(&Label, "Name:", 10.0f, -1);
+		pEditor->UI()->DoLabel(&Label, "Name:", 10.0f, CUI::ALIGN_LEFT);
 
 		// button bar
 		ButtonBar.VSplitLeft(30.0f, 0, &ButtonBar);
@@ -626,9 +670,9 @@ int CEditor::PopupNewFolder(CEditor *pEditor, CUIRect View)
 		View.HSplitTop(30.0f, 0, &View);
 		View.VMargin(40.0f, &View);
 		View.HSplitTop(20.0f, &Label, &View);
-		pEditor->UI()->DoLabel(&Label, "Error:", 10.0f, -1);
+		pEditor->UI()->DoLabel(&Label, "Error:", 10.0f, CUI::ALIGN_LEFT);
 		View.HSplitTop(20.0f, &Label, &View);
-		pEditor->UI()->DoLabel(&Label, "Unable to create the folder", 10.0f, -1, View.w);
+		pEditor->UI()->DoLabel(&Label, "Unable to create the folder", 10.0f, CUI::ALIGN_LEFT, View.w);
 
 		// button
 		ButtonBar.VMargin(ButtonBar.w/2.0f-55.0f, &ButtonBar);
@@ -647,7 +691,7 @@ int CEditor::PopupMapInfo(CEditor *pEditor, CUIRect View)
 	// title
 	View.HSplitTop(10.0f, 0, &View);
 	View.HSplitTop(30.0f, &Label, &View);
-	pEditor->UI()->DoLabel(&Label, "Map details", 20.0f, 0);
+	pEditor->UI()->DoLabel(&Label, "Map details", 20.0f, CUI::ALIGN_CENTER);
 
 	View.HSplitBottom(10.0f, &View, 0);
 	View.HSplitBottom(20.0f, &View, &ButtonBar);
@@ -656,35 +700,35 @@ int CEditor::PopupMapInfo(CEditor *pEditor, CUIRect View)
 
 	// author box
 	View.HSplitTop(20.0f, &Label, &View);
-	pEditor->UI()->DoLabel(&Label, "Author:", 10.0f, -1);
+	pEditor->UI()->DoLabel(&Label, "Author:", 10.0f, CUI::ALIGN_LEFT);
 	Label.VSplitLeft(40.0f, 0, &Button);
 	Button.HSplitTop(12.0f, &Button, 0);
 	static float s_AuthorBox = 0;
-	pEditor->DoEditBox(&s_AuthorBox, &Button, pEditor->m_Map.m_MapInfo.m_aAuthorTmp, sizeof(pEditor->m_Map.m_MapInfo.m_aAuthorTmp), 10.0f, &s_AuthorBox);
+	pEditor->DoEditBox(&s_AuthorBox, &Button, pEditor->m_Map.m_MapInfoTmp.m_aAuthor, sizeof(pEditor->m_Map.m_MapInfoTmp.m_aAuthor), 10.0f, &s_AuthorBox);
 
 	// version box
 	View.HSplitTop(20.0f, &Label, &View);
-	pEditor->UI()->DoLabel(&Label, "Version:", 10.0f, -1);
+	pEditor->UI()->DoLabel(&Label, "Version:", 10.0f, CUI::ALIGN_LEFT);
 	Label.VSplitLeft(40.0f, 0, &Button);
 	Button.HSplitTop(12.0f, &Button, 0);
 	static float s_VersionBox = 0;
-	pEditor->DoEditBox(&s_VersionBox, &Button, pEditor->m_Map.m_MapInfo.m_aVersionTmp, sizeof(pEditor->m_Map.m_MapInfo.m_aVersionTmp), 10.0f, &s_VersionBox);
+	pEditor->DoEditBox(&s_VersionBox, &Button, pEditor->m_Map.m_MapInfoTmp.m_aVersion, sizeof(pEditor->m_Map.m_MapInfoTmp.m_aVersion), 10.0f, &s_VersionBox);
 
 	// credits box
 	View.HSplitTop(20.0f, &Label, &View);
-	pEditor->UI()->DoLabel(&Label, "Credits:", 10.0f, -1);
+	pEditor->UI()->DoLabel(&Label, "Credits:", 10.0f, CUI::ALIGN_LEFT);
 	Label.VSplitLeft(40.0f, 0, &Button);
 	Button.HSplitTop(12.0f, &Button, 0);
 	static float s_CreditsBox = 0;
-	pEditor->DoEditBox(&s_CreditsBox, &Button, pEditor->m_Map.m_MapInfo.m_aCreditsTmp, sizeof(pEditor->m_Map.m_MapInfo.m_aCreditsTmp), 10.0f, &s_CreditsBox);
+	pEditor->DoEditBox(&s_CreditsBox, &Button, pEditor->m_Map.m_MapInfoTmp.m_aCredits, sizeof(pEditor->m_Map.m_MapInfoTmp.m_aCredits), 10.0f, &s_CreditsBox);
 
 	// license box
 	View.HSplitTop(20.0f, &Label, &View);
-	pEditor->UI()->DoLabel(&Label, "License:", 10.0f, -1);
+	pEditor->UI()->DoLabel(&Label, "License:", 10.0f, CUI::ALIGN_LEFT);
 	Label.VSplitLeft(40.0f, 0, &Button);
 	Button.HSplitTop(12.0f, &Button, 0);
 	static float s_LicenseBox = 0;
-	pEditor->DoEditBox(&s_LicenseBox, &Button, pEditor->m_Map.m_MapInfo.m_aLicenseTmp, sizeof(pEditor->m_Map.m_MapInfo.m_aLicenseTmp), 10.0f, &s_LicenseBox);
+	pEditor->DoEditBox(&s_LicenseBox, &Button, pEditor->m_Map.m_MapInfoTmp.m_aLicense, sizeof(pEditor->m_Map.m_MapInfoTmp.m_aLicense), 10.0f, &s_LicenseBox);
 
 	// button bar
 	ButtonBar.VSplitLeft(30.0f, 0, &ButtonBar);
@@ -692,10 +736,10 @@ int CEditor::PopupMapInfo(CEditor *pEditor, CUIRect View)
 	static int s_CreateButton = 0;
 	if(pEditor->DoButton_Editor(&s_CreateButton, "Save", 0, &Label, 0, 0))
 	{
-		str_copy(pEditor->m_Map.m_MapInfo.m_aAuthor, pEditor->m_Map.m_MapInfo.m_aAuthorTmp, sizeof(pEditor->m_Map.m_MapInfo.m_aAuthor));
-		str_copy(pEditor->m_Map.m_MapInfo.m_aVersion, pEditor->m_Map.m_MapInfo.m_aVersionTmp, sizeof(pEditor->m_Map.m_MapInfo.m_aVersion));
-		str_copy(pEditor->m_Map.m_MapInfo.m_aCredits, pEditor->m_Map.m_MapInfo.m_aCreditsTmp, sizeof(pEditor->m_Map.m_MapInfo.m_aCredits));
-		str_copy(pEditor->m_Map.m_MapInfo.m_aLicense, pEditor->m_Map.m_MapInfo.m_aLicenseTmp, sizeof(pEditor->m_Map.m_MapInfo.m_aLicense));
+		str_copy(pEditor->m_Map.m_MapInfo.m_aAuthor, pEditor->m_Map.m_MapInfoTmp.m_aAuthor, sizeof(pEditor->m_Map.m_MapInfo.m_aAuthor));
+		str_copy(pEditor->m_Map.m_MapInfo.m_aVersion, pEditor->m_Map.m_MapInfoTmp.m_aVersion, sizeof(pEditor->m_Map.m_MapInfo.m_aVersion));
+		str_copy(pEditor->m_Map.m_MapInfo.m_aCredits, pEditor->m_Map.m_MapInfoTmp.m_aCredits, sizeof(pEditor->m_Map.m_MapInfo.m_aCredits));
+		str_copy(pEditor->m_Map.m_MapInfo.m_aLicense, pEditor->m_Map.m_MapInfoTmp.m_aLicense, sizeof(pEditor->m_Map.m_MapInfo.m_aLicense));
 		return 1;
 	}
 
@@ -716,13 +760,15 @@ int CEditor::PopupEvent(CEditor *pEditor, CUIRect View)
 	View.HSplitTop(10.0f, 0, &View);
 	View.HSplitTop(30.0f, &Label, &View);
 	if(pEditor->m_PopupEventType == POPEVENT_EXIT)
-		pEditor->UI()->DoLabel(&Label, "Exit the editor", 20.0f, 0);
+		pEditor->UI()->DoLabel(&Label, "Exit the editor", 20.0f, CUI::ALIGN_CENTER);
 	else if(pEditor->m_PopupEventType == POPEVENT_LOAD)
-		pEditor->UI()->DoLabel(&Label, "Load map", 20.0f, 0);
+		pEditor->UI()->DoLabel(&Label, "Load map", 20.0f, CUI::ALIGN_CENTER);
+	else if(pEditor->m_PopupEventType == POPEVENT_LOAD_CURRENT)
+		pEditor->UI()->DoLabel(&Label, "Load current map", 20.0f, CUI::ALIGN_CENTER);
 	else if(pEditor->m_PopupEventType == POPEVENT_NEW)
-		pEditor->UI()->DoLabel(&Label, "New map", 20.0f, 0);
+		pEditor->UI()->DoLabel(&Label, "New map", 20.0f, CUI::ALIGN_CENTER);
 	else if(pEditor->m_PopupEventType == POPEVENT_SAVE)
-		pEditor->UI()->DoLabel(&Label, "Save map", 20.0f, 0);
+		pEditor->UI()->DoLabel(&Label, "Save map", 20.0f, CUI::ALIGN_CENTER);
 
 	View.HSplitBottom(10.0f, &View, 0);
 	View.HSplitBottom(20.0f, &View, &ButtonBar);
@@ -732,13 +778,15 @@ int CEditor::PopupEvent(CEditor *pEditor, CUIRect View)
 	View.VMargin(40.0f, &View);
 	View.HSplitTop(20.0f, &Label, &View);
 	if(pEditor->m_PopupEventType == POPEVENT_EXIT)
-		pEditor->UI()->DoLabel(&Label, "The map contains unsaved data, you might want to save it before you exit the editor.\nContinue anyway?", 10.0f, -1, Label.w-10.0f);
+		pEditor->UI()->DoLabel(&Label, "The map contains unsaved data, you might want to save it before you exit the editor.\nContinue anyway?", 10.0f, CUI::ALIGN_LEFT, Label.w-10.0f);
 	else if(pEditor->m_PopupEventType == POPEVENT_LOAD)
-		pEditor->UI()->DoLabel(&Label, "The map contains unsaved data, you might want to save it before you load a new map.\nContinue anyway?", 10.0f, -1, Label.w-10.0f);
+		pEditor->UI()->DoLabel(&Label, "The map contains unsaved data, you might want to save it before you load a new map.\nContinue anyway?", 10.0f, CUI::ALIGN_LEFT, Label.w-10.0f);
+	else if(pEditor->m_PopupEventType == POPEVENT_LOAD_CURRENT)
+		pEditor->UI()->DoLabel(&Label, "The map contains unsaved data, you might want to save it before you load the current map.\nContinue anyway?", 10.0f, CUI::ALIGN_LEFT, Label.w-10.0f);
 	else if(pEditor->m_PopupEventType == POPEVENT_NEW)
-		pEditor->UI()->DoLabel(&Label, "The map contains unsaved data, you might want to save it before you create a new map.\nContinue anyway?", 10.0f, -1, Label.w-10.0f);
+		pEditor->UI()->DoLabel(&Label, "The map contains unsaved data, you might want to save it before you create a new map.\nContinue anyway?", 10.0f, CUI::ALIGN_LEFT, Label.w-10.0f);
 	else if(pEditor->m_PopupEventType == POPEVENT_SAVE)
-		pEditor->UI()->DoLabel(&Label, "The file already exists.\nDo you want to overwrite the map?", 10.0f, -1);
+		pEditor->UI()->DoLabel(&Label, "The file already exists.\nDo you want to overwrite the map?", 10.0f, CUI::ALIGN_LEFT);
 
 	// button bar
 	ButtonBar.VSplitLeft(30.0f, 0, &ButtonBar);
@@ -750,6 +798,8 @@ int CEditor::PopupEvent(CEditor *pEditor, CUIRect View)
 			g_Config.m_ClEditor = 0;
 		else if(pEditor->m_PopupEventType == POPEVENT_LOAD)
 			pEditor->InvokeFileDialog(IStorage::TYPE_ALL, FILETYPE_MAP, "Load map", "Load", "maps", "", pEditor->CallbackOpenMap, pEditor);
+		else if(pEditor->m_PopupEventType == POPEVENT_LOAD_CURRENT)
+			pEditor->LoadCurrentMap();
 		else if(pEditor->m_PopupEventType == POPEVENT_NEW)
 		{
 			pEditor->Reset();
@@ -814,7 +864,7 @@ int CEditor::PopupSelectImage(CEditor *pEditor, CUIRect View)
 		float Max = (float)(max(pEditor->m_Map.m_lImages[ShowImage]->m_Width, pEditor->m_Map.m_lImages[ShowImage]->m_Height));
 		ImageView.w *= pEditor->m_Map.m_lImages[ShowImage]->m_Width/Max;
 		ImageView.h *= pEditor->m_Map.m_lImages[ShowImage]->m_Height/Max;
-		pEditor->Graphics()->TextureSet(pEditor->m_Map.m_lImages[ShowImage]->m_TexID);
+		pEditor->Graphics()->TextureSet(pEditor->m_Map.m_lImages[ShowImage]->m_Texture);
 		pEditor->Graphics()->BlendNormal();
 		pEditor->Graphics()->WrapClamp();
 		pEditor->Graphics()->QuadsBegin();
@@ -881,21 +931,100 @@ int CEditor::PopupSelectGameTileOpResult()
 	return Result;
 }
 
-static int s_AutoMapConfigSelected = -1;
+static bool s_AutoMapProceedOrder = false;
+
+int CEditor::PopupDoodadAutoMap(CEditor *pEditor, CUIRect View)
+{
+	CLayerTiles *pLayer = static_cast<CLayerTiles*>(pEditor->GetSelectedLayer(0));
+	IAutoMapper *pMapper = pEditor->m_Map.m_lImages[pLayer->m_Image]->m_pAutoMapper;
+	CUIRect Rect;
+
+	View.HSplitTop(15.0f, &Rect, &View);
+
+	// ruleset selection
+	static int s_ChooseDoodadRuleset = 0;
+	if(pEditor->DoButton_Editor(&s_ChooseDoodadRuleset, pMapper->GetRuleSetName(pLayer->m_SelectedRuleSet), 0, &Rect, 0, 0))
+		pEditor->UiInvokePopupMenu(&s_ChooseDoodadRuleset, 0, pEditor->UI()->MouseX(), pEditor->UI()->MouseY(),
+									120.0f, 12.0f+14.0f*pMapper->RuleSetNum(), PopupSelectDoodadRuleSet);
+
+	View.HMargin(3.f, &View);
+	View.HSplitTop(15.0f, &Rect, &View);
+
+	// Amount
+	int s_DoodadSelectAmountButton = 0;
+	int NewValue = pEditor->UiDoValueSelector(&s_DoodadSelectAmountButton, &Rect, "", pLayer->m_SelectedAmount, 1, 100, 1, 1.0f, "Use left mouse button to drag and change the value. Hold shift to be more precise.");
+	if(NewValue != pLayer->m_SelectedAmount)
+	{
+		pLayer->m_SelectedAmount = NewValue;
+	}
+
+	View.HMargin(3.f, &View);
+	View.HSplitTop(15.0f, &Rect, &View);
+
+	// Generate button
+	static int s_ButtonDoodadGenerate = 0;
+	if(pEditor->DoButton_Editor(&s_ButtonDoodadGenerate, "Generate", 0, &Rect, 0, 0))
+		s_AutoMapProceedOrder = true;
+
+	return 0;
+}
+
+int CEditor::PopupSelectDoodadRuleSet(CEditor *pEditor, CUIRect View)
+{
+	CLayerTiles *pLayer = static_cast<CLayerTiles*>(pEditor->GetSelectedLayer(0));
+	CUIRect Button;
+	static int s_AutoMapperDoodadButtons[IAutoMapper::MAX_RULES];
+	IAutoMapper *pMapper = pEditor->m_Map.m_lImages[pLayer->m_Image]->m_pAutoMapper;
+
+	for(int i = 0; i < pMapper->RuleSetNum(); ++i)
+	{
+		View.HSplitTop(2.0f, 0, &View);
+		View.HSplitTop(12.0f, &Button, &View);
+		if(pEditor->DoButton_Editor(&s_AutoMapperDoodadButtons[i], pMapper->GetRuleSetName(i), 0, &Button, 0, 0))
+		{
+			pLayer->m_SelectedRuleSet = i;
+			return 1; // close the popup
+		}
+	}
+
+	return 0;
+}
 
 int CEditor::PopupSelectConfigAutoMap(CEditor *pEditor, CUIRect View)
 {
 	CLayerTiles *pLayer = static_cast<CLayerTiles*>(pEditor->GetSelectedLayer(0));
 	CUIRect Button;
-	static int s_AutoMapperConfigButtons[256];
-	CAutoMapper *pAutoMapper = &pEditor->m_Map.m_lImages[pLayer->m_Image]->m_AutoMapper;
+	static int s_AutoMapperConfigButtons[IAutoMapper::MAX_RULES];
 
-	for(int i = 0; i < pAutoMapper->ConfigNamesNum(); ++i)
+	for(int i = 0; i < pEditor->m_Map.m_lImages[pLayer->m_Image]->m_pAutoMapper->RuleSetNum(); ++i)
 	{
 		View.HSplitTop(2.0f, 0, &View);
 		View.HSplitTop(12.0f, &Button, &View);
-		if(pEditor->DoButton_Editor(&s_AutoMapperConfigButtons[i], pAutoMapper->GetConfigName(i), 0, &Button, 0, 0))
-			s_AutoMapConfigSelected = i;
+		if(pEditor->DoButton_Editor(&s_AutoMapperConfigButtons[i], pEditor->m_Map.m_lImages[pLayer->m_Image]->m_pAutoMapper->GetRuleSetName(i), pLayer->m_LiveAutoMap && pLayer->m_SelectedRuleSet == i, &Button, 0, 0))
+		{
+			pLayer->m_SelectedRuleSet = i;
+			if(!pLayer->m_LiveAutoMap)
+				s_AutoMapProceedOrder = true;
+			break;
+		}
+	}
+
+	View.HSplitTop(2.0f, 0, &View);
+
+	static int s_aIds[2] = {0};
+
+	CUIRect Label, Full, Live;
+	View.VSplitMid(&Label, &View);
+	pEditor->UI()->DoLabel(&Label, "Type", 10.0f, CUI::ALIGN_LEFT);
+
+	View.VSplitMid(&Full, &Live);
+	if(pEditor->DoButton_ButtonDec(&s_aIds[0], "Full", !pLayer->m_LiveAutoMap, &Full, 0, ""))
+	{
+		pLayer->m_LiveAutoMap = false;
+	}
+	if(pEditor->DoButton_ButtonInc(((char *)&s_aIds[0])+1, "Live", pLayer->m_LiveAutoMap, &Live, 0, ""))
+	{
+		pLayer->m_LiveAutoMap = true;
 	}
 
 	return 0;
@@ -904,19 +1033,141 @@ int CEditor::PopupSelectConfigAutoMap(CEditor *pEditor, CUIRect View)
 void CEditor::PopupSelectConfigAutoMapInvoke(float x, float y)
 {
 	static int s_AutoMapConfigSelectID = 0;
-	s_AutoMapConfigSelected = -1;
 	CLayerTiles *pLayer = static_cast<CLayerTiles*>(GetSelectedLayer(0));
+
 	if(pLayer && pLayer->m_Image >= 0 && pLayer->m_Image < m_Map.m_lImages.size() &&
-		m_Map.m_lImages[pLayer->m_Image]->m_AutoMapper.ConfigNamesNum())
-		UiInvokePopupMenu(&s_AutoMapConfigSelectID, 0, x, y, 120.0f, 12.0f+14.0f*m_Map.m_lImages[pLayer->m_Image]->m_AutoMapper.ConfigNamesNum(), PopupSelectConfigAutoMap);
+		m_Map.m_lImages[pLayer->m_Image]->m_pAutoMapper->RuleSetNum())
+	{
+		if(m_Map.m_lImages[pLayer->m_Image]->m_pAutoMapper->GetType() == IAutoMapper::TYPE_TILESET)
+			UiInvokePopupMenu(&s_AutoMapConfigSelectID, 0, x, y, 120.0f, 12.0f+14.0f*m_Map.m_lImages[pLayer->m_Image]->m_pAutoMapper->RuleSetNum()+14.0f, PopupSelectConfigAutoMap);
+		else if(m_Map.m_lImages[pLayer->m_Image]->m_pAutoMapper->GetType() == IAutoMapper::TYPE_DOODADS)
+			UiInvokePopupMenu(&s_AutoMapConfigSelectID, 0, x, y, 120.0f, 60.0f, PopupDoodadAutoMap);
+	}
 }
 
-int CEditor::PopupSelectConfigAutoMapResult()
+bool CEditor::PopupAutoMapProceedOrder()
 {
-	if(s_AutoMapConfigSelected < 0)
-		return -1;
+	if(s_AutoMapProceedOrder)
+	{
+		// reset
+		s_AutoMapProceedOrder = false;
+		return true;
+	}
 
-	int Result = s_AutoMapConfigSelected;
-	s_AutoMapConfigSelected = -1;
-	return Result;
+	return false;
+}
+
+int CEditor::PopupColorPicker(CEditor *pEditor, CUIRect View)
+{
+	CUIRect SVPicker, HuePicker, Palette;
+	View.HSplitBottom(20.0f, &SVPicker, &Palette);
+	SVPicker.VSplitRight(20.0f, &SVPicker, &HuePicker);
+	HuePicker.VSplitLeft(4.0f, 0x0, &HuePicker);
+	Palette.HSplitTop(4.0f, 0x0, &Palette);
+
+	pEditor->Graphics()->TextureClear();
+	pEditor->Graphics()->QuadsBegin();
+
+	// base: white - hue
+	vec3 hsv = pEditor->m_SelectedPickerColor;
+	IGraphics::CColorVertex ColorArray[4];
+
+	vec3 c = HsvToRgb(vec3(hsv.x, 0.0f, 1.0f));
+	ColorArray[0] = IGraphics::CColorVertex(0, c.r, c.g, c.b, 1.0f);
+	c = HsvToRgb(vec3(hsv.x, 1.0f, 1.0f));
+	ColorArray[1] = IGraphics::CColorVertex(1, c.r, c.g, c.b, 1.0f);
+	c = HsvToRgb(vec3(hsv.x, 1.0f, 1.0f));
+	ColorArray[2] = IGraphics::CColorVertex(2, c.r, c.g, c.b, 1.0f);
+	c = HsvToRgb(vec3(hsv.x, 0.0f, 1.0f));
+	ColorArray[3] = IGraphics::CColorVertex(3, c.r, c.g, c.b, 1.0f);
+
+	pEditor->Graphics()->SetColorVertex(ColorArray, 4);
+
+	IGraphics::CQuadItem QuadItem(SVPicker.x, SVPicker.y, SVPicker.w, SVPicker.h);
+	pEditor->Graphics()->QuadsDrawTL(&QuadItem, 1);
+
+	// base: transparent - black
+	ColorArray[0] = IGraphics::CColorVertex(0, 0.0f, 0.0f, 0.0f, 0.0f);
+	ColorArray[1] = IGraphics::CColorVertex(1, 0.0f, 0.0f, 0.0f, 0.0f);
+	ColorArray[2] = IGraphics::CColorVertex(2, 0.0f, 0.0f, 0.0f, 1.0f);
+	ColorArray[3] = IGraphics::CColorVertex(3, 0.0f, 0.0f, 0.0f, 1.0f);
+
+	pEditor->Graphics()->SetColorVertex(ColorArray, 4);
+
+	pEditor->Graphics()->QuadsDrawTL(&QuadItem, 1);
+
+	pEditor->Graphics()->QuadsEnd();
+
+	// marker
+	vec2 Marker = vec2(hsv.y, (1.0f - hsv.z)) * vec2(SVPicker.w, SVPicker.h);
+	pEditor->Graphics()->QuadsBegin();
+	pEditor->Graphics()->SetColor(0.5f, 0.5f, 0.5f, 1.0f);
+	IGraphics::CQuadItem aMarker[2];
+	aMarker[0] = IGraphics::CQuadItem(SVPicker.x+Marker.x, SVPicker.y+Marker.y - 5.0f*pEditor->UI()->PixelSize(), pEditor->UI()->PixelSize(), 11.0f*pEditor->UI()->PixelSize());
+	aMarker[1] = IGraphics::CQuadItem(SVPicker.x+Marker.x - 5.0f*pEditor->UI()->PixelSize(), SVPicker.y+Marker.y, 11.0f*pEditor->UI()->PixelSize(), pEditor->UI()->PixelSize());
+	pEditor->Graphics()->QuadsDrawTL(aMarker, 2);
+	pEditor->Graphics()->QuadsEnd();
+
+	// logic
+	float X, Y;
+	static int s_SVPicker = 0;
+	if(pEditor->UI()->DoPickerLogic(&s_SVPicker, &SVPicker, &X, &Y))
+	{
+		hsv.y = X/SVPicker.w;
+		hsv.z = 1.0f - Y/SVPicker.h;	
+	}
+
+	// hue slider
+	static const float s_aColorIndices[7][3] = {
+		{1.0f, 0.0f, 0.0f}, // red
+		{1.0f, 0.0f, 1.0f},	// magenta
+		{0.0f, 0.0f, 1.0f}, // blue
+		{0.0f, 1.0f, 1.0f}, // cyan
+		{0.0f, 1.0f, 0.0f}, // green
+		{1.0f, 1.0f, 0.0f}, // yellow
+		{1.0f, 0.0f, 0.0f}  // red
+	};
+
+	pEditor->Graphics()->QuadsBegin();
+	vec4 ColorTop, ColorBottom;
+	float Offset = HuePicker.h/6.0f;
+	for(int j = 0; j < 6; j++)
+	{
+		ColorTop = vec4(s_aColorIndices[j][0], s_aColorIndices[j][1], s_aColorIndices[j][2], 1.0f);
+		ColorBottom = vec4(s_aColorIndices[j+1][0], s_aColorIndices[j+1][1], s_aColorIndices[j+1][2], 1.0f);
+
+		ColorArray[0] = IGraphics::CColorVertex(0, ColorTop.r, ColorTop.g, ColorTop.b, ColorTop.a);
+		ColorArray[1] = IGraphics::CColorVertex(1, ColorTop.r, ColorTop.g, ColorTop.b, ColorTop.a);
+		ColorArray[2] = IGraphics::CColorVertex(2, ColorBottom.r, ColorBottom.g, ColorBottom.b, ColorBottom.a);
+		ColorArray[3] = IGraphics::CColorVertex(3, ColorBottom.r, ColorBottom.g, ColorBottom.b, ColorBottom.a);
+		pEditor->Graphics()->SetColorVertex(ColorArray, 4);
+		IGraphics::CQuadItem QuadItem(HuePicker.x, HuePicker.y+Offset*j, HuePicker.w, Offset);
+		pEditor->Graphics()->QuadsDrawTL(&QuadItem, 1);
+	}
+
+	// marker
+	pEditor->Graphics()->SetColor(0.5f, 0.5f, 0.5f, 1.0f);
+	IGraphics::CQuadItem QuadItemMarker(HuePicker.x, HuePicker.y + (1.0f - hsv.x) * HuePicker.h, HuePicker.w, pEditor->UI()->PixelSize());
+	pEditor->Graphics()->QuadsDrawTL(&QuadItemMarker, 1);
+
+	pEditor->Graphics()->QuadsEnd();
+
+	static int s_HuePicker = 0;
+	if(pEditor->UI()->DoPickerLogic(&s_HuePicker, &HuePicker, &X, &Y))
+	{
+		hsv.x = 1.0f - Y/HuePicker.h;	
+	}
+	
+	// palette
+	static int s_Palette = 0;
+	pEditor->RenderTools()->DrawUIRect(&Palette, pEditor->m_SelectedColor, 0, 0.0f);
+	if(pEditor->DoButton_Editor_Common(&s_Palette, 0x0, 0, &Palette, 0, 0x0))
+	{
+		if(pEditor->m_SelectedColor.a > 0.0f)
+			hsv = RgbToHsv(vec3(pEditor->m_SelectedColor.r, pEditor->m_SelectedColor.g, pEditor->m_SelectedColor.b));
+	}
+
+	pEditor->m_SelectedPickerColor = hsv;
+
+	return 0;
 }

@@ -3,18 +3,11 @@
 #ifndef GAME_SERVER_ENTITIES_CHARACTER_H
 #define GAME_SERVER_ENTITIES_CHARACTER_H
 
-#include <game/server/entity.h>
-#include <game/generated/server_data.h>
-#include <game/generated/protocol.h>
+#include <generated/protocol.h>
 
 #include <game/gamecore.h>
+#include <game/server/entity.h>
 
-enum
-{
-	WEAPON_GAME = -3, // team switching etc
-	WEAPON_SELF = -2, // console kill command
-	WEAPON_WORLD = -1, // death tiles etc
-};
 
 class CCharacter : public CEntity
 {
@@ -24,6 +17,11 @@ public:
 	//character's size
 	static const int ms_PhysSize = 28;
 
+	enum
+	{
+		MIN_KILLMESSAGE_CLIENTVERSION=0x0704,   // todo 0.8: remove me
+	};
+
 	CCharacter(CGameWorld *pWorld);
 
 	virtual void Reset();
@@ -32,6 +30,7 @@ public:
 	virtual void TickDefered();
 	virtual void TickPaused();
 	virtual void Snap(int SnappingClient);
+	virtual void PostSnap();
 
 	bool IsGrounded();
 
@@ -40,7 +39,7 @@ public:
 	void DoWeaponSwitch();
 
 	void HandleWeapons();
-	void HandleFreeze();
+	void HandleNinja();
 
 	void OnPredictedInput(CNetObj_PlayerInput *pNewInput);
 	void OnDirectInput(CNetObj_PlayerInput *pNewInput);
@@ -48,13 +47,7 @@ public:
 	void FireWeapon();
 
 	void Die(int Killer, int Weapon);
-
-	void DieSpikes(int pPlayerID, int spikes_flag);
-	bool IsFalseSpike(int Team, int spike_flag);
-
-	void Hit(int Killer, int Weapon);
-	bool TakeDamage(vec2 Force, int Dmg, int From, int Weapon);
-	void TakeHammerHit(CCharacter* pFrom);
+	bool TakeDamage(vec2 Force, vec2 Source, int Dmg, int From, int Weapon);
 
 	bool Spawn(class CPlayer *pPlayer, vec2 Pos);
 	bool Remove();
@@ -63,22 +56,14 @@ public:
 	bool IncreaseArmor(int Amount);
 
 	bool GiveWeapon(int Weapon, int Ammo);
-	void Freeze(int TimeInSec);
-	void Unfreeze(int pPlayerID);
+	void GiveNinja();
 
 	void SetEmote(int Emote, int Tick);
 
 	bool IsAlive() const { return m_Alive; }
 	class CPlayer *GetPlayer() { return m_pPlayer; }
 
-	bool IsFrozen();
-
-	void SetKiller(int pKillerID, unsigned int pHookTicks);
-
 private:
-	int NetworkClipped(int SnappingClient, float& Distance);
-	int NetworkClipped(int SnappingClient, float& Distance, vec2 CheckPos);
-
 	// player controlling this character
 	class CPlayer *m_pPlayer;
 
@@ -92,13 +77,9 @@ private:
 	{
 		int m_AmmoRegenStart;
 		int m_Ammo;
-		int m_Ammocost;
 		bool m_Got;
 
 	} m_aWeapons[NUM_WEAPONS];
-
-	int m_InvincibleTick;
-	int m_SpawnTick;
 
 	int m_ActiveWeapon;
 	int m_LastWeapon;
@@ -119,28 +100,23 @@ private:
 	CNetObj_PlayerInput m_LatestInput;
 
 	// input
-	CNetObj_PlayerInput m_PrevInput;
 	CNetObj_PlayerInput m_Input;
 	int m_NumInputs;
 	int m_Jumped;
 
-	int m_DamageTakenTick;
-
 	int m_Health;
 	int m_Armor;
 
-	// freeze
+	int m_TriggeredEvents;
+
+	// ninja
 	struct
 	{
+		vec2 m_ActivationDir;
 		int m_ActivationTick;
-		int m_Duration;
-	} m_Freeze;
-
-	// killer, that frozen this character
-	struct {
-		int m_KillerID;
-		unsigned int m_uiKillerHookTicks;
-	} m_Killer;
+		int m_CurrentMoveTime;
+		int m_OldVelAmount;
+	} m_Ninja;
 
 	// the player core for the physics
 	CCharacterCore m_Core;

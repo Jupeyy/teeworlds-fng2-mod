@@ -3,6 +3,8 @@
 #ifndef ENGINE_GRAPHICS_H
 #define ENGINE_GRAPHICS_H
 
+#include <base/vmath.h>
+
 #include "kernel.h"
 
 
@@ -42,6 +44,8 @@ class CVideoMode
 public:
 	int m_Width, m_Height;
 	int m_Red, m_Green, m_Blue;
+
+	bool operator<(const CVideoMode &Other) { return Other.m_Width < m_Width; }
 };
 
 class IGraphics : public IInterface
@@ -50,19 +54,53 @@ class IGraphics : public IInterface
 protected:
 	int m_ScreenWidth;
 	int m_ScreenHeight;
+	int m_DesktopScreenWidth;
+	int m_DesktopScreenHeight;
 public:
 	/* Constants: Texture Loading Flags
 		TEXLOAD_NORESAMPLE - Prevents the texture from any resampling
+		TEXLOAD_NOMIPMAPS - Prevents the texture from generating mipmaps
+		TEXLOAD_ARRAY_256 - Texture will be loaded as 3D texture with 16*16 subtiles
+		TEXLOAD_MULTI_DIMENSION - Texture will be loaded as 2D and 3D texture
 	*/
 	enum
 	{
 		TEXLOAD_NORESAMPLE = 1,
 		TEXLOAD_NOMIPMAPS = 2,
+		TEXLOAD_ARRAY_256 = 4,
+		TEXLOAD_MULTI_DIMENSION = 8,
+		TEXLOAD_LINEARMIPMAPS = 16,
+
+		NUMTILES_DIMENSION = 16,			// number of tiles in each dimension within a texture
+	};
+
+	/* Constants: Wrap Modes */
+	enum
+	{
+		WRAP_REPEAT = 0,
+		WRAP_CLAMP,
+	};
+
+	class CTextureHandle
+	{
+		friend class IGraphics;
+		int m_Id;
+	public:
+		CTextureHandle()
+		: m_Id(-1)
+		{}
+
+		bool IsValid() const { return Id() >= 0; }
+		int Id() const { return m_Id; }
+		void Invalidate() { m_Id = -1; }
 	};
 
 	int ScreenWidth() const { return m_ScreenWidth; }
 	int ScreenHeight() const { return m_ScreenHeight; }
 	float ScreenAspect() const { return (float)ScreenWidth()/(float)ScreenHeight(); }
+	int DesktopWidth() const { return m_DesktopScreenWidth; }
+	int DesktopHeight() const { return m_DesktopScreenHeight; }
+	float DesktopAspect() const { return m_DesktopScreenWidth/(float)m_DesktopScreenHeight; }
 
 	virtual void Clear(float r, float g, float b) = 0;
 
@@ -78,14 +116,17 @@ public:
 	virtual void BlendAdditive() = 0;
 	virtual void WrapNormal() = 0;
 	virtual void WrapClamp() = 0;
+	virtual void WrapMode(int WrapU, int WrapV) = 0;
 	virtual int MemoryUsage() const = 0;
 
 	virtual int LoadPNG(CImageInfo *pImg, const char *pFilename, int StorageType) = 0;
-	virtual int UnloadTexture(int Index) = 0;
-	virtual int LoadTextureRaw(int Width, int Height, int Format, const void *pData, int StoreFormat, int Flags) = 0;
-	virtual int LoadTexture(const char *pFilename, int StorageType, int StoreFormat, int Flags) = 0;
-	virtual int LoadTextureRawSub(int TextureID, int x, int y, int Width, int Height, int Format, const void *pData) = 0;
-	virtual void TextureSet(int TextureID) = 0;
+
+	virtual int UnloadTexture(CTextureHandle *Index) = 0;
+	virtual CTextureHandle LoadTextureRaw(int Width, int Height, int Format, const void *pData, int StoreFormat, int Flags) = 0;
+	virtual int LoadTextureRawSub(CTextureHandle TextureID, int x, int y, int Width, int Height, int Format, const void *pData) = 0;
+	virtual CTextureHandle LoadTexture(const char *pFilename, int StorageType, int StoreFormat, int Flags) = 0;
+	virtual void TextureSet(CTextureHandle Texture) = 0;
+	void TextureClear() { TextureSet(CTextureHandle()); }
 
 	struct CLineItem
 	{
@@ -100,8 +141,8 @@ public:
 	virtual void QuadsBegin() = 0;
 	virtual void QuadsEnd() = 0;
 	virtual void QuadsSetRotation(float Angle) = 0;
-	virtual void QuadsSetSubset(float TopLeftY, float TopLeftV, float BottomRightU, float BottomRightV) = 0;
-	virtual void QuadsSetSubsetFree(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3) = 0;
+	virtual void QuadsSetSubset(float TopLeftY, float TopLeftV, float BottomRightU, float BottomRightV, int TextureIndex = -1) = 0;
+	virtual void QuadsSetSubsetFree(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, int TextureIndex = -1) = 0;
 
 	struct CQuadItem
 	{
@@ -131,16 +172,28 @@ public:
 	};
 	virtual void SetColorVertex(const CColorVertex *pArray, int Num) = 0;
 	virtual void SetColor(float r, float g, float b, float a) = 0;
+	virtual void SetColor4(vec4 TopLeft, vec4 TopRight, vec4 BottomLeft, vec4 BottomRight) = 0;
 
+	virtual void ReadBackbuffer(unsigned char **ppPixels, int x, int y, int w, int h) = 0;
 	virtual void TakeScreenshot(const char *pFilename) = 0;
-	virtual int GetVideoModes(CVideoMode *pModes, int MaxModes) = 0;
+	virtual int GetVideoModes(CVideoMode *pModes, int MaxModes, int Screen) = 0;
 
 	virtual void Swap() = 0;
+	virtual int GetNumScreens() const = 0;
+
 
 	// syncronization
 	virtual void InsertSignal(class semaphore *pSemaphore) = 0;
-	virtual bool IsIdle() = 0;
+	virtual bool IsIdle() const = 0;
 	virtual void WaitForIdle() = 0;
+
+protected:
+	inline CTextureHandle CreateTextureHandle(int Index)
+	{
+		CTextureHandle Tex;
+		Tex.m_Id = Index;
+		return Tex;
+	}
 };
 
 class IEngineGraphics : public IGraphics
@@ -150,6 +203,12 @@ public:
 	virtual int Init() = 0;
 	virtual void Shutdown() = 0;
 
+	virtual bool Fullscreen(bool State) = 0;
+	virtual void SetWindowBordered(bool State) = 0;
+	virtual bool SetWindowScreen(int Index) = 0;
+	virtual bool SetVSync(bool State) = 0;
+	virtual int GetWindowScreen() = 0;
+
 	virtual void Minimize() = 0;
 	virtual void Maximize() = 0;
 
@@ -158,7 +217,7 @@ public:
 
 };
 
-extern IEngineGraphics *CreateEngineGraphics();
+extern IEngineGraphics *CreateEngineGraphics(); // NOTE: not used
 extern IEngineGraphics *CreateEngineGraphicsThreaded();
 
 #endif

@@ -1,7 +1,9 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
+#include <base/system.h>
 #include "eventhandler.h"
 #include "gamecontext.h"
+#include "player.h"
 
 //////////////////////////////////////////////////
 // Event handler
@@ -17,7 +19,7 @@ void CEventHandler::SetGameServer(CGameContext *pGameServer)
 	m_pGameServer = pGameServer;
 }
 
-void *CEventHandler::Create(int Type, int Size, QuadroMask Mask)
+void *CEventHandler::Create(int Type, int Size, int64 Mask)
 {
 	if(m_NumEvents == MAX_EVENTS)
 		return 0;
@@ -47,7 +49,7 @@ void CEventHandler::Snap(int SnappingClient)
 		if(SnappingClient == -1 || CmaskIsSet(m_aClientMasks[i], SnappingClient))
 		{
 			CNetEvent_Common *ev = (CNetEvent_Common *)&m_aData[m_aOffsets[i]];
-			if(SnappingClient == -1 || (GameServer()->m_apPlayers[SnappingClient] && distance(GameServer()->m_apPlayers[SnappingClient]->m_ViewPos, vec2(ev->m_X, ev->m_Y))) < 1500.0f)
+			if(SnappingClient == -1 || distance(GameServer()->m_apPlayers[SnappingClient]->m_ViewPos, vec2(ev->m_X, ev->m_Y)) < 1500.0f)
 			{
 				void *d = GameServer()->Server()->SnapNewItem(m_aTypes[i], i, m_aSizes[i]);
 				if(d)

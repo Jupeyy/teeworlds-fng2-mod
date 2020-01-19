@@ -3,10 +3,11 @@
 #ifndef GAME_EDITOR_EDITOR_H
 #define GAME_EDITOR_EDITOR_H
 
-#include <math.h>
+#include <algorithm>
 
 #include <base/math.h>
 #include <base/system.h>
+#include <base/vmath.h>
 
 #include <base/tl/algorithm.h>
 #include <base/tl/array.h>
@@ -36,6 +37,8 @@ enum
 
 	DIALOG_NONE=0,
 	DIALOG_FILE,
+
+	MAX_SKIP=(1<<8)-1
 };
 
 struct CEntity
@@ -64,7 +67,7 @@ public:
 
 	void Resort()
 	{
-		sort(m_lPoints.all());
+		std::stable_sort(&m_lPoints[0], &m_lPoints[m_lPoints.size()]);
 		FindTopBottom(0xf);
 	}
 
@@ -78,9 +81,28 @@ public:
 			{
 				if(ChannelMask&(1<<c))
 				{
-					float v = fx2f(m_lPoints[i].m_aValues[c]);
-					if(v > m_Top) m_Top = v;
-					if(v < m_Bottom) m_Bottom = v;
+					{
+						// value handle
+						float v = fx2f(m_lPoints[i].m_aValues[c]);
+						if(v > m_Top) m_Top = v;
+						if(v < m_Bottom) m_Bottom = v;
+					}
+
+					if(m_lPoints[i].m_Curvetype == CURVETYPE_BEZIER)
+					{
+						// out-tangent handle
+						float v = fx2f(m_lPoints[i].m_aValues[c]+m_lPoints[i].m_aOutTangentdy[c]);
+						if(v > m_Top) m_Top = v;
+						if(v < m_Bottom) m_Bottom = v;
+					}
+
+					if((i>0) && m_lPoints[i-1].m_Curvetype == CURVETYPE_BEZIER)
+					{
+						// in-tangent handle
+						float v = fx2f(m_lPoints[i].m_aValues[c]+m_lPoints[i].m_aInTangentdy[c]);
+						if(v > m_Top) m_Top = v;
+						if(v < m_Bottom) m_Bottom = v;
+					}
 				}
 			}
 		}
@@ -101,6 +123,13 @@ public:
 		p.m_aValues[2] = v2;
 		p.m_aValues[3] = v3;
 		p.m_Curvetype = CURVETYPE_LINEAR;
+		for(int c = 0; c < 4; c++)
+		{
+			p.m_aInTangentdx[c] = 0;
+			p.m_aInTangentdy[c] = 0;
+			p.m_aOutTangentdx[c] = 0;
+			p.m_aOutTangentdy[c] = 0;
+		}
 		m_lPoints.add(p);
 		Resort();
 	}
@@ -156,7 +185,7 @@ public:
 	virtual void ModifyImageIndex(INDEX_MODIFY_FUNC pfnFunc) {}
 	virtual void ModifyEnvelopeIndex(INDEX_MODIFY_FUNC pfnFunc) {}
 
-	virtual void GetSize(float *w, float *h) { *w = 0; *h = 0;}
+	virtual void GetSize(float *w, float *h) const { *w = 0; *h = 0;}
 
 	char m_aName[12];
 	int m_Type;
@@ -200,7 +229,7 @@ public:
 	void MapScreen();
 	void Mapping(float *pPoints);
 
-	void GetSize(float *w, float *h);
+	void GetSize(float *w, float *h) const;
 
 	void DeleteLayer(int Index);
 	int SwapLayers(int Index0, int Index1);
@@ -236,27 +265,28 @@ public:
 	CEditor *m_pEditor;
 
 	CEditorImage(CEditor *pEditor)
-	: m_AutoMapper(pEditor)
 	{
 		m_pEditor = pEditor;
-		m_TexID = -1;
 		m_aName[0] = 0;
 		m_External = 0;
 		m_Width = 0;
 		m_Height = 0;
 		m_pData = 0;
 		m_Format = 0;
+		m_pAutoMapper = 0;
 	}
 
 	~CEditorImage();
 
 	void AnalyseTileFlags();
+	void LoadAutoMapper();
 
-	int m_TexID;
+	IGraphics::CTextureHandle m_Texture;
 	int m_External;
 	char m_aName[128];
 	unsigned char m_aTileFlags[256];
-	class CAutoMapper m_AutoMapper;
+	class IAutoMapper *m_pAutoMapper;
+	bool operator<(const CEditorImage &Other) const { return str_comp(m_aName, Other.m_aName) < 0; }
 };
 
 class CEditorMap
@@ -279,11 +309,6 @@ public:
 	class CMapInfo
 	{
 	public:
-		char m_aAuthorTmp[32];
-		char m_aVersionTmp[16];
-		char m_aCreditsTmp[128];
-		char m_aLicenseTmp[32];
-
 		char m_aAuthor[32];
 		char m_aVersion[16];
 		char m_aCredits[128];
@@ -291,11 +316,6 @@ public:
 
 		void Reset()
 		{
-			m_aAuthorTmp[0] = 0;
-			m_aVersionTmp[0] = 0;
-			m_aCreditsTmp[0] = 0;
-			m_aLicenseTmp[0] = 0;
-
 			m_aAuthor[0] = 0;
 			m_aVersion[0] = 0;
 			m_aCredits[0] = 0;
@@ -303,6 +323,7 @@ public:
 		}
 	};
 	CMapInfo m_MapInfo;
+	CMapInfo m_MapInfoTmp;
 
 	class CLayerGame *m_pGameLayer;
 	CLayerGroup *m_pGameGroup;
@@ -332,7 +353,7 @@ public:
 		if(Index1 < 0 || Index1 >= m_lGroups.size()) return Index0;
 		if(Index0 == Index1) return Index0;
 		m_Modified = true;
-		swap(m_lGroups[Index0], m_lGroups[Index1]);
+		tl_swap(m_lGroups[Index0], m_lGroups[Index1]);
 		return Index1;
 	}
 
@@ -359,7 +380,7 @@ public:
 	}
 
 	void Clean();
-	void CreateDefault(int EntitiesTexture);
+	void CreateDefault();
 
 	// io
 	int Save(class IStorage *pStorage, const char *pFilename);
@@ -387,12 +408,6 @@ enum
 	PROPTYPE_ENVELOPE,
 	PROPTYPE_SHIFT,
 };
-
-typedef struct
-{
-	int x, y;
-	int w, h;
-} RECTi;
 
 class CLayerTiles : public CLayer
 {
@@ -427,10 +442,11 @@ public:
 	virtual void ModifyEnvelopeIndex(INDEX_MODIFY_FUNC pfnFunc);
 
 	void PrepareForSave();
+	void ExtractTiles(CTile *pSavedTiles);
 
-	void GetSize(float *w, float *h) { *w = m_Width*32.0f; *h = m_Height*32.0f; }
+	void GetSize(float *w, float *h) const { *w = m_Width*32.0f; *h = m_Height*32.0f; }
 
-	int m_TexID;
+	IGraphics::CTextureHandle m_Texture;
 	int m_Game;
 	int m_Image;
 	int m_Width;
@@ -438,7 +454,12 @@ public:
 	CColor m_Color;
 	int m_ColorEnv;
 	int m_ColorEnvOffset;
+	CTile *m_pSaveTiles;
+	int m_SaveTilesSize;
 	CTile *m_pTiles;
+	int m_SelectedRuleSet;
+	bool m_LiveAutoMap;
+	int m_SelectedAmount;
 };
 
 class CLayerQuads : public CLayer
@@ -462,7 +483,7 @@ public:
 	virtual void ModifyImageIndex(INDEX_MODIFY_FUNC pfnFunc);
 	virtual void ModifyEnvelopeIndex(INDEX_MODIFY_FUNC pfnFunc);
 
-	void GetSize(float *w, float *h);
+	void GetSize(float *w, float *h) const;
 
 	int m_Image;
 	array<CQuad> m_lQuads;
@@ -511,6 +532,8 @@ public:
 
 		m_GridActive = false;
 		m_GridFactor = 1;
+		
+		m_MouseEdMode = MOUSE_EDIT;
 
 		m_aFileName[0] = 0;
 		m_aFileSaveName[0] = 0;
@@ -560,21 +583,20 @@ public:
 
 		m_ShowEnvelopeEditor = 0;
 
-		m_ShowEnvelopePreview = 0;
+		m_ShowEnvelopePreview = SHOWENV_NONE;
 		m_SelectedQuadEnvelope = -1;
 		m_SelectedEnvelopePoint = -1;
-
-		ms_CheckerTexture = 0;
-		ms_BackgroundTexture = 0;
-		ms_CursorTexture = 0;
-		ms_EntitiesTexture = 0;
+		
+		m_SelectedColor = vec4(0,0,0,0);
+		m_InitialPickerColor = vec3(1,0,0);
+		m_SelectedPickerColor = vec3(1,0,0);
 
 		ms_pUiGotContext = 0;
 	}
 
 	virtual void Init();
 	virtual void UpdateAndRender();
-	virtual bool HasUnsavedData() { return m_Map.m_Modified; }
+	virtual bool HasUnsavedData() const { return m_Map.m_Modified; }
 
 	void FilelistPopulate(int StorageType);
 	void InvokeFileDialog(int StorageType, int FileType, const char *pTitle, const char *pButtonText,
@@ -584,6 +606,7 @@ public:
 	void Reset(bool CreateDefault=true);
 	int Save(const char *pFilename);
 	int Load(const char *pFilename, int StorageType);
+	void LoadCurrentMap();
 	int Append(const char *pFilename, int StorageType);
 	void Render();
 
@@ -601,6 +624,14 @@ public:
 
 	bool m_GridActive;
 	int m_GridFactor;
+	
+	enum
+	{
+		MOUSE_EDIT=0,
+		MOUSE_PIPETTE,
+	};
+	
+	int m_MouseEdMode;
 
 	char m_aFileName[512];
 	char m_aFileSaveName[512];
@@ -610,6 +641,7 @@ public:
 	{
 		POPEVENT_EXIT=0,
 		POPEVENT_LOAD,
+		POPEVENT_LOAD_CURRENT,
 		POPEVENT_NEW,
 		POPEVENT_SAVE,
 	};
@@ -639,8 +671,10 @@ public:
 	int m_FileDialogFileType;
 	float m_FileDialogScrollValue;
 	int m_FilesSelectedIndex;
+	char m_aFileDialogFilterString[64];
 	char m_FileDialogNewFolderName[64];
 	char m_FileDialogErrString[64];
+	float m_FilesSearchBoxID;
 
 	struct CFilelistItem
 	{
@@ -682,8 +716,15 @@ public:
 	float m_AnimateSpeed;
 
 	int m_ShowEnvelopeEditor;
-	int m_ShowEnvelopePreview; //Values: 0-Off|1-Selected Envelope|2-All
-	bool m_ShowPicker;
+
+	enum
+	{
+		SHOWENV_NONE = 0,
+		SHOWENV_SELECTED,
+		SHOWENV_ALL
+	};
+	int m_ShowEnvelopePreview;
+	bool m_ShowTilePicker;
 
 	int m_SelectedLayer;
 	int m_SelectedGroup;
@@ -693,11 +734,15 @@ public:
 	int m_SelectedEnvelopePoint;
     int m_SelectedQuadEnvelope;
 	int m_SelectedImage;
+	
+	vec4 m_SelectedColor;
+	vec3 m_InitialPickerColor;
+	vec3 m_SelectedPickerColor;
 
-	static int ms_CheckerTexture;
-	static int ms_BackgroundTexture;
-	static int ms_CursorTexture;
-	static int ms_EntitiesTexture;
+	IGraphics::CTextureHandle m_CheckerTexture;
+	IGraphics::CTextureHandle m_BackgroundTexture;
+	IGraphics::CTextureHandle m_CursorTexture;
+	IGraphics::CTextureHandle m_EntitiesTexture;
 
 	CLayerGroup m_Brush;
 	CLayerTiles m_TilesetPicker;
@@ -707,6 +752,8 @@ public:
 	CEditorMap m_Map;
 
 	static void EnvelopeEval(float TimeOffset, int Env, float *pChannels, void *pUser);
+	static void ConMapMagic(class IConsole::IResult *pResult, void *pUserData);
+	void DoMapMagic(int ImageID, int SrcIndex);
 
 	void DoMapBorder();
 	int DoButton_Editor_Common(const void *pID, const char *pText, int Checked, const CUIRect *pRect, int Flags, const char *pToolTip);
@@ -718,13 +765,14 @@ public:
 	int DoButton_ButtonInc(const void *pID, const char *pText, int Checked, const CUIRect *pRect, int Flags, const char *pToolTip);
 
 	int DoButton_File(const void *pID, const char *pText, int Checked, const CUIRect *pRect, int Flags, const char *pToolTip);
+	int DoButton_Image(const void *pID, const char *pText, int Checked, const CUIRect *pRect, int Flags, const char *pToolTip, bool Used);
 
 	int DoButton_Menu(const void *pID, const char *pText, int Checked, const CUIRect *pRect, int Flags, const char *pToolTip);
 	int DoButton_MenuItem(const void *pID, const char *pText, int Checked, const CUIRect *pRect, int Flags=0, const char *pToolTip=0);
 
 	int DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrSize, float FontSize, float *Offset, bool Hidden=false, int Corners=CUI::CORNER_ALL);
 
-	void RenderBackground(CUIRect View, int Texture, float Size, float Brightness);
+	void RenderBackground(CUIRect View, IGraphics::CTextureHandle Texture, float Size, float Brightness);
 
 	void RenderGrid(CLayerGroup *pGroup);
 
@@ -745,6 +793,9 @@ public:
 	static int PopupImage(CEditor *pEditor, CUIRect View);
 	static int PopupMenuFile(CEditor *pEditor, CUIRect View);
 	static int PopupSelectConfigAutoMap(CEditor *pEditor, CUIRect View);
+	static int PopupSelectDoodadRuleSet(CEditor *pEditor, CUIRect View);
+	static int PopupDoodadAutoMap(CEditor *pEditor, CUIRect View);
+	static int PopupColorPicker(CEditor *pEditor, CUIRect View);
 
 	static void CallbackOpenMap(const char *pFileName, int StorageType, void *pUser);
 	static void CallbackAppendMap(const char *pFileName, int StorageType, void *pUser);
@@ -757,11 +808,11 @@ public:
 	int PopupSelectGameTileOpResult();
 
 	void PopupSelectConfigAutoMapInvoke(float x, float y);
-	int PopupSelectConfigAutoMapResult();
+	bool PopupAutoMapProceedOrder();
 
 	vec4 ButtonColorMul(const void *pID);
 
-	void DoQuadEnvelopes(const array<CQuad> &m_lQuads, int TexID = -1);
+	void DoQuadEnvelopes(const array<CQuad> &m_lQuads, IGraphics::CTextureHandle Texture);
 	void DoQuadEnvPoint(const CQuad *pQuad, int QIndex, int pIndex);
 	void DoQuadPoint(CQuad *pQuad, int QuadIndex, int v);
 
@@ -801,7 +852,8 @@ public:
 		str_copy(pName, pExtractedName, Length);
 	}
 
-	int GetLineDistance();
+	int GetLineDistance() const;
+	void ZoomMouseTarget(float ZoomFactor);
 };
 
 // make sure to inline this function

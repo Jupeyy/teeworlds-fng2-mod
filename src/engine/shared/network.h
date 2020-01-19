@@ -1,4 +1,4 @@
-﻿/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_SHARED_NETWORK_H
 #define ENGINE_SHARED_NETWORK_H
@@ -6,25 +6,43 @@
 #include "ringbuffer.h"
 #include "huffman.h"
 
-#include <base/math.h>
-
-#include <engine/message.h>
-
 /*
 
 CURRENT:
-	packet header: 3 bytes
-		unsigned char flags_ack; // 4bit flags, 4bit ack
-		unsigned char ack; // 8 bit ack
-		unsigned char num_chunks; // 8 bit chunks
+	packet header: 7 bytes (9 bytes for connless)
+		unsigned char flags_ack;    // 6bit flags, 2bit ack
+		unsigned char ack;          // 8bit ack
+		unsigned char numchunks;    // 8bit chunks
+		unsigned char token[4];     // 32bit token
+		// ffffffaa
+		// aaaaaaaa
+		// NNNNNNNN
+		// TTTTTTTT
+		// TTTTTTTT
+		// TTTTTTTT
+		// TTTTTTTT
 
-		(unsigned char padding[3])	// 24 bit extra incase it's a connection less packet
-									// this is to make sure that it's compatible with the
-									// old protocol
+	packet header (CONNLESS):
+		unsigned char flag_version;				// 6bit flags, 2bits version
+		unsigned char token[4];					// 32bit token
+		unsigned char responsetoken[4];			// 32bit response token
+
+		// ffffffvv
+		// TTTTTTTT
+		// TTTTTTTT
+		// TTTTTTTT
+		// TTTTTTTT
+		// RRRRRRRR
+		// RRRRRRRR
+		// RRRRRRRR
+		// RRRRRRRR
+
+	if the token isn't explicitely set by any means, it must be set to
+	0xffffffff
 
 	chunk header: 2-3 bytes
 		unsigned char flags_size; // 2bit flags, 6 bit size
-		unsigned char size_seq; // 4bit size, 4bit seq
+		unsigned char size_seq; // 6bit size, 2bit seq
 		(unsigned char seq;) // 8bit seq, if vital flag is set
 */
 
@@ -42,33 +60,64 @@ enum
 	NETBANTYPE_SOFT=1,
 	NETBANTYPE_DROP=2,
 
-	NETCREATE_FLAG_RANDOMPORT=1
+	NETCREATE_FLAG_RANDOMPORT=1,
 };
 
 
 enum
 {
-	NET_VERSION = 2,
+	NET_MAX_CHUNKHEADERSIZE = 3,
+	
+	// packets
+	NET_PACKETHEADERSIZE = 7,
+	NET_PACKETHEADERSIZE_CONNLESS = NET_PACKETHEADERSIZE + 2,
+	NET_MAX_PACKETHEADERSIZE = NET_PACKETHEADERSIZE_CONNLESS,
 
 	NET_MAX_PACKETSIZE = 1400,
-	NET_MAX_PAYLOAD = NET_MAX_PACKETSIZE-6,
-	NET_MAX_CHUNKHEADERSIZE = 5,
-	NET_PACKETHEADERSIZE = 3,
-	NET_MAX_CLIENTS = 16,
+	NET_MAX_PAYLOAD = NET_MAX_PACKETSIZE-NET_MAX_PACKETHEADERSIZE,
+
+	NET_PACKETVERSION=1,
+
+	NET_PACKETFLAG_CONTROL=1,
+	NET_PACKETFLAG_RESEND=2,
+	NET_PACKETFLAG_COMPRESSION=4,
+	NET_PACKETFLAG_CONNLESS=8,
+
+	NET_MAX_PACKET_CHUNKS=256,
+
+	// token
+	NET_SEEDTIME = 16,
+
+	NET_TOKENCACHE_SIZE = 64,
+	NET_TOKENCACHE_ADDRESSEXPIRY = NET_SEEDTIME,
+	NET_TOKENCACHE_PACKETEXPIRY = 5,
+};
+enum
+{
+	NET_TOKEN_MAX = 0xffffffff,
+	NET_TOKEN_NONE = NET_TOKEN_MAX,
+	NET_TOKEN_MASK = NET_TOKEN_MAX,
+};
+enum
+{
+	NET_TOKENFLAG_ALLOWBROADCAST = 1,
+	NET_TOKENFLAG_RESPONSEONLY = 2,
+
+	NET_TOKENREQUEST_DATASIZE = 512,
+
+	//
+	NET_MAX_CLIENTS = 64,
 	NET_MAX_CONSOLE_CLIENTS = 4,
+	
 	NET_MAX_SEQUENCE = 1<<10,
 	NET_SEQUENCE_MASK = NET_MAX_SEQUENCE-1,
 
 	NET_CONNSTATE_OFFLINE=0,
-	NET_CONNSTATE_CONNECT=1,
-	NET_CONNSTATE_PENDING=2,
-	NET_CONNSTATE_ONLINE=3,
-	NET_CONNSTATE_ERROR=4,
-
-	NET_PACKETFLAG_CONTROL=1,
-	NET_PACKETFLAG_CONNLESS=2,
-	NET_PACKETFLAG_RESEND=4,
-	NET_PACKETFLAG_COMPRESSION=8,
+	NET_CONNSTATE_TOKEN=1,
+	NET_CONNSTATE_CONNECT=2,
+	NET_CONNSTATE_PENDING=3,
+	NET_CONNSTATE_ONLINE=4,
+	NET_CONNSTATE_ERROR=5,
 
 	NET_CHUNKFLAG_VITAL=1,
 	NET_CHUNKFLAG_RESEND=2,
@@ -78,36 +127,25 @@ enum
 	NET_CTRLMSG_CONNECTACCEPT=2,
 	NET_CTRLMSG_ACCEPT=3,
 	NET_CTRLMSG_CLOSE=4,
+	NET_CTRLMSG_TOKEN=5,
 
 	NET_CONN_BUFFERSIZE=1024*32,
-
-	NET_CONNLIMIT_IPS=16,
 
 	NET_ENUM_TERMINATOR
 };
 
-typedef int SECURITY_TOKEN;
 
-SECURITY_TOKEN ToSecurityToken(unsigned char *pData);
-
-static const unsigned char SECURITY_TOKEN_MAGIC[] = {'T', 'K', 'E', 'N'};
-
-enum
-{
-	NET_SECURITY_TOKEN_UNKNOWN = -1,
-	NET_SECURITY_TOKEN_UNSUPPORTED = 0,
-};
-
-typedef int (*NETFUNC_DELCLIENT)(int ClientID, const char* pReason, void *pUser, bool ForceDisconnect);
+typedef int (*NETFUNC_DELCLIENT)(int ClientID, const char* pReason, void *pUser);
 typedef int (*NETFUNC_NEWCLIENT)(int ClientID, void *pUser);
-typedef int (*NETFUNC_NEWCLIENT_NOAUTH)(int ClientID, void *pUser);
+
+typedef unsigned int TOKEN;
 
 struct CNetChunk
 {
-	// -1 means that it's a stateless packet
+	// -1 means that it's a connless packet
 	// 0 on the client means the server
 	int m_ClientID;
-	NETADDR m_Address; // only used when client_id == -1
+	NETADDR m_Address; // only used when cid == -1
 	int m_Flags;
 	int m_DataSize;
 	const void *m_pData;
@@ -139,11 +177,99 @@ public:
 class CNetPacketConstruct
 {
 public:
+	TOKEN m_Token;
+	TOKEN m_ResponseToken; // only used in connless packets
 	int m_Flags;
 	int m_Ack;
 	int m_NumChunks;
 	int m_DataSize;
 	unsigned char m_aChunkData[NET_MAX_PAYLOAD];
+};
+
+
+class CNetTokenManager
+{
+public:
+	void Init(NETSOCKET Socket, int SeedTime = NET_SEEDTIME);
+	void Update();
+
+	void GenerateSeed();
+
+	int ProcessMessage(const NETADDR *pAddr, const CNetPacketConstruct *pPacket);
+
+	bool CheckToken(const NETADDR *pAddr, TOKEN Token, TOKEN ResponseToken, bool *BroadcastResponse);
+	TOKEN GenerateToken(const NETADDR *pAddr) const;
+	static TOKEN GenerateToken(const NETADDR *pAddr, int64 Seed);
+
+private:
+	NETSOCKET m_Socket;
+
+	int64 m_Seed;
+	int64 m_PrevSeed;
+
+	TOKEN m_GlobalToken;
+	TOKEN m_PrevGlobalToken;
+
+	int m_SeedTime;
+	int64 m_NextSeedTime;
+};
+
+typedef void(*FSendCallback)(int TrackID, void *pUser);
+struct CSendCBData
+{
+	FSendCallback m_pfnCallback;
+	void *m_pCallbackUser;
+	int m_TrackID;
+};
+
+class CNetTokenCache
+{
+public:
+	CNetTokenCache();
+	~CNetTokenCache();
+	void Init(NETSOCKET Socket, const CNetTokenManager *pTokenManager);
+	void SendPacketConnless(const NETADDR *pAddr, const void *pData, int DataSize, CSendCBData *pCallbackData = 0);
+	void PurgeStoredPacket(int TrackID);
+	void FetchToken(const NETADDR *pAddr);
+	void AddToken(const NETADDR *pAddr, TOKEN PeerToken, int TokenFlag);
+	TOKEN GetToken(const NETADDR *pAddr);
+	void Update();
+
+private:
+	class CConnlessPacketInfo
+	{
+	private:
+		static int m_UniqueID;
+
+	public:
+		CConnlessPacketInfo() : m_TrackID(CConnlessPacketInfo::m_UniqueID++) {}
+
+		NETADDR m_Addr;
+		int m_DataSize;
+		char m_aData[NET_MAX_PAYLOAD];
+		int64 m_Expiry;
+		int64 m_LastTokenRequest;
+		const int m_TrackID;
+		FSendCallback m_pfnCallback;
+		void *m_pCallbackUser;
+		CConnlessPacketInfo *m_pNext;
+	};
+
+	struct CAddressInfo
+	{
+		NETADDR m_Addr;
+		TOKEN m_Token;
+		int64 m_Expiry;
+	};
+
+	TStaticRingBuffer<CAddressInfo,
+	                  NET_TOKENCACHE_SIZE * sizeof(CAddressInfo),
+	                  CRingBufferBase::FLAG_RECYCLE> m_TokenCache;
+
+	CConnlessPacketInfo *m_pConnlessPacketList; // TODO: enhance this, dynamic linked lists
+	                                            // are bad for performance
+	NETSOCKET m_Socket;
+	const CNetTokenManager *m_pTokenManager;
 };
 
 
@@ -159,11 +285,8 @@ private:
 	unsigned short m_PeerAck;
 	unsigned m_State;
 
-	int m_Token;
-	SECURITY_TOKEN m_SecurityToken;
 	int m_RemoteClosed;
 	bool m_BlockCloseMsg;
-	bool m_UnknownSeq;
 
 	TStaticRingBuffer<CNetChunkResend, NET_CONN_BUFFERSIZE> m_Buffer;
 
@@ -175,37 +298,48 @@ private:
 
 	CNetPacketConstruct m_Construct;
 
+	TOKEN m_Token;
+	TOKEN m_PeerToken;
 	NETADDR m_PeerAddr;
+
 	NETSOCKET m_Socket;
 	NETSTATS m_Stats;
 
 	//
+	void Reset();
 	void ResetStats();
 	void SetError(const char *pString);
 	void AckChunks(int Ack);
 
 	int QueueChunkEx(int Flags, int DataSize, const void *pData, int Sequence);
 	void SendControl(int ControlMsg, const void *pExtra, int ExtraSize);
+	void SendControlWithToken(int ControlMsg);
 	void ResendChunk(CNetChunkResend *pResend);
 	void Resend();
 
-	bool HasSecurityToken;
+	static TOKEN GenerateToken(const NETADDR *pPeerAddr);
 
 public:
 	void Init(NETSOCKET Socket, bool BlockCloseMsg);
 	int Connect(NETADDR *pAddr);
 	void Disconnect(const char *pReason);
 
+	void SetToken(TOKEN Token);
+
+	TOKEN Token() const { return m_Token; }
+	TOKEN PeerToken() const { return m_PeerToken; }
+	NETSOCKET Socket() const { return m_Socket; }
+
 	int Update();
 	int Flush();
 
-	int Feed(CNetPacketConstruct *pPacket, NETADDR *pAddr, SECURITY_TOKEN SecurityToken = NET_SECURITY_TOKEN_UNSUPPORTED);
+	int Feed(CNetPacketConstruct *pPacket, NETADDR *pAddr);
 	int QueueChunk(int Flags, int DataSize, const void *pData);
+	void SendPacketConnless(const char *pData, int DataSize);
 
 	const char *ErrorString();
 	void SignalResend();
 	int State() const { return m_State; }
-	void SetState(unsigned State) { m_State = State; }
 	const NETADDR *PeerAddress() const { return &m_PeerAddr; }
 
 	void ResetErrorString() { m_ErrorString[0] = 0; }
@@ -216,14 +350,6 @@ public:
 	int64 ConnectTime() const { return m_LastUpdateTime; }
 
 	int AckSequence() const { return m_Ack; }
-	int SeqSequence() const { return m_Sequence; }
-	int SecurityToken() const { return m_SecurityToken; }
-
-	// anti spoof
-	void DirectInit(NETADDR &Addr, SECURITY_TOKEN SecurityToken);
-	void SetUnknownSeq() { m_UnknownSeq = true; }
-	void SetSequence(int Sequence) { m_Sequence = Sequence; }
-	void Reset();
 };
 
 class CConsoleNetConnection
@@ -283,13 +409,6 @@ class CNetServer
 		CNetConnection m_Connection;
 	};
 
-	struct CSpamConn
-	{
-		NETADDR m_Addr;
-		int64 m_Time;
-		int m_Conns;
-	};
-
 	NETSOCKET m_Socket;
 	class CNetBan *m_pNetBan;
 	CSlot m_aSlots[NET_MAX_CLIENTS];
@@ -297,55 +416,33 @@ class CNetServer
 	int m_MaxClientsPerIP;
 
 	NETFUNC_NEWCLIENT m_pfnNewClient;
-	NETFUNC_NEWCLIENT_NOAUTH m_pfnNewClientNoAuth;
 	NETFUNC_DELCLIENT m_pfnDelClient;
 	void *m_UserPtr;
 
-
-	int m_NumConAttempts; // log flooding attacks
-	int64 m_TimeNumConAttempts;
-	unsigned char m_SecurityTokenSeed[16];
-
-	// vanilla connect flood detection
-	bool m_VConnHighLoad;
-	int64 m_VConnFirst;
-	int m_VConnNum;
-
-	CSpamConn m_aSpamConns[NET_CONNLIMIT_IPS];
-
 	CNetRecvUnpacker m_RecvUnpacker;
 
-	void OnTokenCtrlMsg(NETADDR &Addr, int ControlMsg, const CNetPacketConstruct &Packet);
-	void OnPreConnMsg(NETADDR &Addr, CNetPacketConstruct &Packet);
-	void OnConnCtrlMsg(NETADDR &Addr, int ClientID, int ControlMsg, const CNetPacketConstruct &Packet);
-	bool ClientExists(const NETADDR &Addr) { return GetClientSlot(Addr) != -1; };
-	int GetClientSlot(const NETADDR &Addr);
-	void SendControl(NETADDR &Addr, int ControlMsg, const void *pExtra, int ExtraSize, SECURITY_TOKEN SecurityToken);
+	CNetTokenManager m_TokenManager;
+	CNetTokenCache m_TokenCache;
 
-	int TryAcceptClient(NETADDR &Addr, SECURITY_TOKEN SecurityToken, bool VanillaAuth=false);
-	int NumClientsWithAddr(NETADDR Addr);
-	bool Connlimit(NETADDR Addr);
-	void SendMsgs(NETADDR &Addr, const CMsgPacker *Msgs[], int num);
-
+	int m_Flags;
 public:
-	// int SetCallbacks(NETFUNC_NEWCLIENT pfnNewClient, NETFUNC_DELCLIENT pfnDelClient, void *pUser);
-        int SetCallbacks(NETFUNC_NEWCLIENT pfnNewClient, NETFUNC_NEWCLIENT_NOAUTH pfnNewClientNoAuth, NETFUNC_DELCLIENT pfnDelClient, void *pUser);
+	int SetCallbacks(NETFUNC_NEWCLIENT pfnNewClient, NETFUNC_DELCLIENT pfnDelClient, void *pUser);
 
 	//
 	bool Open(NETADDR BindAddr, class CNetBan *pNetBan, int MaxClients, int MaxClientsPerIP, int Flags);
 	int Close();
 
-	//
-	int Recv(CNetChunk *pChunk);
-	int Send(CNetChunk *pChunk);
+	// the token parameter is only used for connless packets
+	int Recv(CNetChunk *pChunk, TOKEN *pResponseToken = 0);
+	int Send(CNetChunk *pChunk, TOKEN Token = NET_TOKEN_NONE);
 	int Update();
+	void AddToken(const NETADDR *pAddr, TOKEN Token) { m_TokenCache.AddToken(pAddr, Token, 0); };
 
 	//
-	int Drop(int ClientID, const char *pReason, bool ForceDisconnect = true);
+	int Drop(int ClientID, const char *pReason);
 
 	// status requests
 	const NETADDR *ClientAddr(int ClientID) const { return m_aSlots[ClientID].m_Connection.PeerAddress(); }
-	bool HasSecurityToken(int ClientID) const { return m_aSlots[ClientID].m_Connection.SecurityToken() != NET_SECURITY_TOKEN_UNSUPPORTED; }
 	NETSOCKET Socket() const { return m_Socket; }
 	class CNetBan *NetBan() const { return m_pNetBan; }
 	int NetType() const { return m_Socket.type; }
@@ -353,16 +450,6 @@ public:
 
 	//
 	void SetMaxClientsPerIP(int Max);
-	bool SetTimedOut(int ClientID, int OrigID);
-	void SetTimeoutProtected(int ClientID);
-
-	int ResetErrorString(int ClientID);
-	const char *ErrorString(int ClientID);
-
-	// anti spoof
-	SECURITY_TOKEN GetToken(const NETADDR &Addr);
-	// vanilla token/gametick shouldn't be negative
-	SECURITY_TOKEN GetVanillaToken(const NETADDR &Addr) { return absolute(GetToken(Addr)); }
 };
 
 class CNetConsole
@@ -410,8 +497,13 @@ class CNetClient
 {
 	CNetConnection m_Connection;
 	CNetRecvUnpacker m_RecvUnpacker;
-public:
+
+	CNetTokenCache m_TokenCache;
+	CNetTokenManager m_TokenManager;
+
 	NETSOCKET m_Socket;
+	int m_Flags;
+public:
 	// openness
 	bool Open(NETADDR BindAddr, int Flags);
 	int Close();
@@ -421,8 +513,9 @@ public:
 	int Connect(NETADDR *Addr);
 
 	// communication
-	int Recv(CNetChunk *Chunk);
-	int Send(CNetChunk *Chunk);
+	int Recv(CNetChunk *pChunk, TOKEN *pResponseToken = 0);
+	int Send(CNetChunk *pChunk, TOKEN Token = NET_TOKEN_NONE, CSendCBData *pCallbackData = 0);
+	void PurgeStoredPacket(int TrackID);
 
 	// pumping
 	int Update();
@@ -432,11 +525,9 @@ public:
 
 	// error and state
 	int NetType() const { return m_Socket.type; }
-	int State();
-	int GotProblems();
-	const char *ErrorString();
-
-	bool SecurityTokenUnknown() { return m_Connection.SecurityToken() == NET_SECURITY_TOKEN_UNKNOWN; }
+	int State() const;
+	bool GotProblems() const;
+	const char *ErrorString() const;
 };
 
 
@@ -454,10 +545,10 @@ public:
 	static int Compress(const void *pData, int DataSize, void *pOutput, int OutputSize);
 	static int Decompress(const void *pData, int DataSize, void *pOutput, int OutputSize);
 
-	static void SendControlMsg(NETSOCKET Socket, NETADDR *pAddr, int Ack, int ControlMsg, const void *pExtra, int ExtraSize, SECURITY_TOKEN SecurityToken);
-	static void SendPacketConnless(NETSOCKET Socket, NETADDR *pAddr, const void *pData, int DataSize);
-	static void SendPacket(NETSOCKET Socket, NETADDR *pAddr, CNetPacketConstruct *pPacket, SECURITY_TOKEN SecurityToken);
-
+	static void SendControlMsg(NETSOCKET Socket, const NETADDR *pAddr, TOKEN Token, int Ack, int ControlMsg, const void *pExtra, int ExtraSize);
+	static void SendControlMsgWithToken(NETSOCKET Socket, const NETADDR *pAddr, TOKEN Token, int Ack, int ControlMsg, TOKEN MyToken, bool Extended);
+	static void SendPacketConnless(NETSOCKET Socket, const NETADDR *pAddr, TOKEN Token, TOKEN ResponseToken, const void *pData, int DataSize);
+	static void SendPacket(NETSOCKET Socket, const NETADDR *pAddr, CNetPacketConstruct *pPacket);
 	static int UnpackPacket(unsigned char *pBuffer, int Size, CNetPacketConstruct *pPacket);
 
 	// The backroom is ack-NET_MAX_SEQUENCE/2. Used for knowing if we acked a packet or not

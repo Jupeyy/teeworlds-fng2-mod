@@ -84,7 +84,8 @@ protected:
 			REASON_LENGTH=64,
 		};
 		int m_Expires;
-		char m_aReason[REASON_LENGTH];
+		int m_LastInfoQuery;
+		char m_aReason[REASON_LENGTH];		
 	};
 
 	template<class T> struct CBan
@@ -132,8 +133,7 @@ protected:
 	private:
 		enum
 		{
-			//increased to drop more spam clients... not for weak CPUs/RAM
-			MAX_BANS=40000,
+			MAX_BANS=1024,
 		};
 
 		CBan<CDataType> *m_paaHashList[HashCount][256];
@@ -148,7 +148,7 @@ protected:
 	typedef CBan<NETADDR> CBanAddr;
 	typedef CBan<CNetRange> CBanRange;
 	
-	template<class T> void MakeBanInfo(const CBan<T> *pBan, char *pBuf, unsigned BuffSize, int Type) const;
+	template<class T> void MakeBanInfo(CBan<T> *pBan, char *pBuf, unsigned BuffSize, int Type, int *pLastInfoQuery=0);
 	template<class T> int Ban(T *pBanPool, const typename T::CDataType *pData, int Seconds, const char *pReason);
 	template<class T> int Unban(T *pBanPool, const typename T::CDataType *pData);
 
@@ -179,13 +179,12 @@ public:
 	int UnbanByAddr(const NETADDR *pAddr);
 	int UnbanByRange(const CNetRange *pRange);
 	int UnbanByIndex(int Index);
-	void UnbanAll() { m_BanAddrPool.Reset(); m_BanRangePool.Reset(); }
-	bool IsBanned(const NETADDR *pAddr, char *pBuf, unsigned BufferSize) const;
+	void UnbanAll();
+	template<class T> bool IsBannable(const T *pData);
+	bool IsBanned(const NETADDR *pAddr, char *pBuf, unsigned BufferSize, int *pLastInfoQuery);
 
 	static void ConBan(class IConsole::IResult *pResult, void *pUser);
-	static void ConBanRange(class IConsole::IResult *pResult, void *pUser);
 	static void ConUnban(class IConsole::IResult *pResult, void *pUser);
-	static void ConUnbanRange(class IConsole::IResult *pResult, void *pUser);
 	static void ConUnbanAll(class IConsole::IResult *pResult, void *pUser);
 	static void ConBans(class IConsole::IResult *pResult, void *pUser);
 	static void ConBansSave(class IConsole::IResult *pResult, void *pUser);

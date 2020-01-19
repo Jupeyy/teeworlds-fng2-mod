@@ -1,4 +1,4 @@
-import os, imp, sys
+import sys
 from datatypes import *
 import content
 import network
@@ -64,6 +64,10 @@ if gen_server_content_header:
 
 
 if gen_client_content_header or gen_server_content_header:
+	# print some includes
+	print('#include <engine/graphics.h>')
+	print('#include <engine/sound.h>')
+
 	# emit the type declarations
 	contentlines = open("datasrc/content.py", "rb").readlines()
 	order = []
@@ -123,10 +127,11 @@ if gen_network_header:
 class CNetObjHandler
 {
 	const char *m_pMsgFailedOn;
-	const char *m_pObjCorrectedOn;
 	char m_aMsgData[1024];
-	int m_NumObjCorrections;
-	int ClampInt(const char *pErrorMsg, int Value, int Min, int Max);
+	const char *m_pObjFailedOn;
+	int m_NumObjFailures;
+	bool CheckInt(const char *pErrorMsg, int Value, int Min, int Max);
+	bool CheckFlag(const char *pErrorMsg, int Value, int Mask);
 
 	static const char *ms_apObjNames[];
 	static int ms_aObjSizes[];
@@ -135,15 +140,15 @@ class CNetObjHandler
 public:
 	CNetObjHandler();
 
-	int ValidateObj(int Type, void *pData, int Size);
-	const char *GetObjName(int Type);
-	int GetObjSize(int Type);
-	int NumObjCorrections();
-	const char *CorrectedObjOn();
-
-	const char *GetMsgName(int Type);
+	int ValidateObj(int Type, const void *pData, int Size);
+	const char *GetObjName(int Type) const;
+	int GetObjSize(int Type) const;
+	const char *FailedObjOn() const;
+	int NumObjFailures() const;
+	
+	const char *GetMsgName(int Type) const;
 	void *SecureUnpackMsg(int Type, CUnpacker *pUnpacker);
-	const char *FailedMsgOn();
+	const char *FailedMsgOn() const;
 };
 
 """)
@@ -162,27 +167,34 @@ if gen_network_source:
 	lines += ['CNetObjHandler::CNetObjHandler()']
 	lines += ['{']
 	lines += ['\tm_pMsgFailedOn = "";']
-	lines += ['\tm_pObjCorrectedOn = "";']
-	lines += ['\tm_NumObjCorrections = 0;']
+	lines += ['\tm_pObjFailedOn = "";']
+	lines += ['\tm_NumObjFailures = 0;']
 	lines += ['}']
 	lines += ['']
-	lines += ['int CNetObjHandler::NumObjCorrections() { return m_NumObjCorrections; }']
-	lines += ['const char *CNetObjHandler::CorrectedObjOn() { return m_pObjCorrectedOn; }']
-	lines += ['const char *CNetObjHandler::FailedMsgOn() { return m_pMsgFailedOn; }']
-	lines += ['']
+	lines += ['const char *CNetObjHandler::FailedObjOn() const { return m_pObjFailedOn; }']
+	lines += ['int CNetObjHandler::NumObjFailures() const { return m_NumObjFailures; }']
+	lines += ['const char *CNetObjHandler::FailedMsgOn() const { return m_pMsgFailedOn; }']
 	lines += ['']
 	lines += ['']
 	lines += ['']
 	lines += ['']
 
 	lines += ['static const int max_int = 0x7fffffff;']
+	lines += ['']
 
-	lines += ['int CNetObjHandler::ClampInt(const char *pErrorMsg, int Value, int Min, int Max)']
+	lines += ['bool CNetObjHandler::CheckInt(const char *pErrorMsg, int Value, int Min, int Max)']
 	lines += ['{']
-	lines += ['\tif(Value < Min) { m_pObjCorrectedOn = pErrorMsg; m_NumObjCorrections++; return Min; }']
-	lines += ['\tif(Value > Max) { m_pObjCorrectedOn = pErrorMsg; m_NumObjCorrections++; return Max; }']
-	lines += ['\treturn Value;']
+	lines += ['\tif(Value < Min || Value > Max) { m_pObjFailedOn = pErrorMsg; m_NumObjFailures++; return false; }']
+	lines += ['\treturn true;']
 	lines += ['}']
+	lines += ['']
+
+	lines += ['bool CNetObjHandler::CheckFlag(const char *pErrorMsg, int Value, int Mask)']
+	lines += ['{']
+	lines += ['\tif((Value&Mask) != Value) { m_pObjFailedOn = pErrorMsg; m_NumObjFailures++; return false; }']
+	lines += ['\treturn true;']
+	lines += ['}']
+	lines += ['']
 
 	lines += ["const char *CNetObjHandler::ms_apObjNames[] = {"]
 	lines += ['\t"invalid",']
@@ -203,14 +215,14 @@ if gen_network_source:
 	lines += ['};']
 	lines += ['']
 
-	lines += ['const char *CNetObjHandler::GetObjName(int Type)']
+	lines += ['const char *CNetObjHandler::GetObjName(int Type) const']
 	lines += ['{']
 	lines += ['\tif(Type < 0 || Type >= NUM_NETOBJTYPES) return "(out of range)";']
 	lines += ['\treturn ms_apObjNames[Type];']
 	lines += ['};']
 	lines += ['']
 
-	lines += ['int CNetObjHandler::GetObjSize(int Type)']
+	lines += ['int CNetObjHandler::GetObjSize(int Type) const']
 	lines += ['{']
 	lines += ['\tif(Type < 0 || Type >= NUM_NETOBJTYPES) return 0;']
 	lines += ['\treturn ms_aObjSizes[Type];']
@@ -218,7 +230,7 @@ if gen_network_source:
 	lines += ['']
 
 
-	lines += ['const char *CNetObjHandler::GetMsgName(int Type)']
+	lines += ['const char *CNetObjHandler::GetMsgName(int Type) const']
 	lines += ['{']
 	lines += ['\tif(Type < 0 || Type >= NUM_NETMSGTYPES) return "(out of range)";']
 	lines += ['\treturn ms_apMsgNames[Type];']
@@ -251,7 +263,7 @@ if gen_network_source:
 		lines += ["};", ""]
 
 	lines = []
-	lines += ['int CNetObjHandler::ValidateObj(int Type, void *pData, int Size)']
+	lines += ['int CNetObjHandler::ValidateObj(int Type, const void *pData, int Size)']
 	lines += ['{']
 	lines += ['\tswitch(Type)']
 	lines += ['\t{']
@@ -286,6 +298,7 @@ if gen_network_source:
 	lines += ['void *CNetObjHandler::SecureUnpackMsg(int Type, CUnpacker *pUnpacker)']
 	lines += ['{']
 	lines += ['\tm_pMsgFailedOn = 0;']
+	lines += ['\tm_pObjFailedOn = 0;']
 	lines += ['\tswitch(Type)']
 	lines += ['\t{']
 
@@ -303,9 +316,15 @@ if gen_network_source:
 	lines += ['\tif(pUnpacker->Error())']
 	lines += ['\t\tm_pMsgFailedOn = "(unpack error)";']
 	lines += ['\t']
-	lines += ['\tif(m_pMsgFailedOn)']
+	lines += ['\tif(m_pMsgFailedOn || m_pObjFailedOn) {']
+	lines += ['\t\tif(!m_pMsgFailedOn)']
+	lines += ['\t\t\tm_pMsgFailedOn = "";']
+	lines += ['\t\tif(!m_pObjFailedOn)']
+	lines += ['\t\t\tm_pObjFailedOn = "";']
 	lines += ['\t\treturn 0;']
+	lines += ['\t}']
 	lines += ['\tm_pMsgFailedOn = "";']
+	lines += ['\tm_pObjFailedOn = "";']
 	lines += ['\treturn m_aMsgData;']
 	lines += ['};']
 	lines += ['']

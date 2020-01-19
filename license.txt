@@ -1,5 +1,4 @@
-Copyright (C) 2007-2016 Magnus Auvinen
-Copyright (C) 2016 KeksTW, Jupeyy
+Copyright (C) 2007-2020 Magnus Auvinen
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any damages
@@ -16,6 +15,16 @@ freely, subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be
   misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
+
+------------------------------------------------------------------------
+
+All content under 'data' and 'datasrc' except the font (which has its own license) is
+released under CC-BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0/).
+
+Authors:	android272, Chi11y (chi1), Crises, Daniel, Echchouik, Fisico,
+			Landil, Lappi, LordSk, maikka, matricks, Pocram, red_com,
+			serpis, SkizZ, somerunce, Sonix, Stephanator, teetow, Ubu,
+			Zatline
 
 ------------------------------------------------------------------------
 

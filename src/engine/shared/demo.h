@@ -25,7 +25,7 @@ class CDemoRecorder : public IDemoRecorder
 public:
 	CDemoRecorder(class CSnapshotDelta *pSnapshotDelta);
 
-	int Start(class IStorage *pStorage, class IConsole *pConsole, const char *pFilename, const char *pNetversion, const char *pMap, unsigned MapCrc, const char *pType);
+	int Start(class IStorage *pStorage, class IConsole *pConsole, const char *pFilename, const char *pNetversion, const char *pMap, SHA256_DIGEST MapSha256, unsigned MapCrc, const char *pType);
 	int Stop();
 	void AddDemoMarker();
 
@@ -51,7 +51,6 @@ public:
 	struct CPlaybackInfo
 	{
 		CDemoHeader m_Header;
-		CTimelineMarkers m_TimelineMarkers;
 
 		IDemoPlayer::CInfo m_Info;
 
@@ -87,6 +86,7 @@ private:
 	class IConsole *m_pConsole;
 	IOHANDLE m_File;
 	char m_aFilename[256];
+	char m_aErrorMsg[256];
 	CKeyFrame *m_pKeyFrames;
 
 	CPlaybackInfo m_Info;
@@ -106,7 +106,7 @@ public:
 
 	void SetListner(IListner *pListner);
 
-	int Load(class IStorage *pStorage, class IConsole *pConsole, const char *pFilename, int StorageType);
+	const char *Load(class IStorage *pStorage, class IConsole *pConsole, const char *pFilename, int StorageType, const char *pNetversion);
 	int Play();
 	void Pause();
 	void Unpause();

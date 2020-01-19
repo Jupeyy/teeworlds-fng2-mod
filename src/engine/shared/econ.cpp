@@ -23,7 +23,7 @@ int CEcon::NewClientCallback(int ClientID, void *pUser)
 	return 0;
 }
 
-int CEcon::DelClientCallback(int ClientID, const char *pReason, void *pUser, bool ForceDisconnect)
+int CEcon::DelClientCallback(int ClientID, const char *pReason, void *pUser)
 {
 	CEcon *pThis = (CEcon *)pUser;
 
@@ -37,7 +37,7 @@ int CEcon::DelClientCallback(int ClientID, const char *pReason, void *pUser, boo
 	return 0;
 }
 
-void CEcon::SendLineCB(const char *pLine, void *pUserData)
+void CEcon::SendLineCB(const char *pLine, void *pUserData, bool Highlighted)
 {
 	static_cast<CEcon *>(pUserData)->Send(-1, pLine);
 }

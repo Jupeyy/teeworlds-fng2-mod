@@ -1,4 +1,4 @@
-﻿/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef ENGINE_SHARED_PROTOCOL_H
 #define ENGINE_SHARED_PROTOCOL_H
@@ -39,14 +39,18 @@ enum
 	// sent by server
 	NETMSG_MAP_CHANGE,		// sent when client should switch map
 	NETMSG_MAP_DATA,		// map transfer, contains a chunk of the map file
+	NETMSG_SERVERINFO,
 	NETMSG_CON_READY,		// connection is ready, client should send start info
 	NETMSG_SNAP,			// normal snapshot, multiple parts
 	NETMSG_SNAPEMPTY,		// empty snapshot
 	NETMSG_SNAPSINGLE,		// ?
 	NETMSG_SNAPSMALL,		//
 	NETMSG_INPUTTIMING,		// reports how off the input was
-	NETMSG_RCON_AUTH_STATUS,// result of the authentication
+	NETMSG_RCON_AUTH_ON,	// rcon authentication enabled
+	NETMSG_RCON_AUTH_OFF,	// rcon authentication disabled
 	NETMSG_RCON_LINE,		// line that should be printed to the remote console
+	NETMSG_RCON_CMD_ADD,
+	NETMSG_RCON_CMD_REM,
 
 	NETMSG_AUTH_CHALLANGE,	//
 	NETMSG_AUTH_RESULT,		//
@@ -67,18 +71,21 @@ enum
 	NETMSG_PING_REPLY,
 	NETMSG_ERROR,
 
-	// sent by server (todo: move it up)
-	NETMSG_RCON_CMD_ADD,
-	NETMSG_RCON_CMD_REM,
+	NETMSG_MAPLIST_ENTRY_ADD,// todo 0.8: move up
+	NETMSG_MAPLIST_ENTRY_REM,
 };
 
 // this should be revised
 enum
 {
 	SERVER_TICK_SPEED=50,
-	SERVER_FLAG_PASSWORD = 0x1,
+	SERVERINFO_FLAG_PASSWORD = 0x1,
+	SERVERINFO_FLAG_TIMESCORE = 0x2,
+	SERVERINFO_LEVEL_MIN=0,
+	SERVERINFO_LEVEL_MAX=2,
 
-	MAX_CLIENTS=16,
+	MAX_CLIENTS=64,
+	MAX_PLAYERS=16,
 
 	MAX_INPUT_SIZE=128,
 	MAX_SNAPSHOT_PACKSIZE=900,

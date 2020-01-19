@@ -14,9 +14,8 @@ class IInterface
 	friend class CKernel;
 	IKernel *m_pKernel;
 protected:
-	void SetKernel(IKernel* pKernel) { m_pKernel = pKernel; }
-public:
 	IKernel *Kernel() { return m_pKernel; }
+public:
 	IInterface() : m_pKernel(0) {}
 	virtual ~IInterface() {}
 
