@@ -81,8 +81,6 @@ option(DOWNLOAD_GTEST "Download and compile GTest if not found" ${AUTO_DEPENDENC
 option(PREFER_BUNDLED_LIBS "Prefer bundled libraries over system libraries" ${AUTO_DEPENDENCIES_DEFAULT})
 option(DEV "Don't generate stuff necessary for packaging" OFF)
 
-set(OpenGL_GL_PREFERENCE LEGACY)
-
 # Set the default build type to Release
 if(NOT(CMAKE_BUILD_TYPE))
   if(NOT(DEV))
@@ -365,11 +363,8 @@ if(TARGET_OS STREQUAL "windows")
 elseif(TARGET_OS STREQUAL "mac")
   find_library(CARBON Carbon)
   find_library(COCOA Cocoa)
-  find_library(OPENGL OpenGL)
   set(PLATFORM_LIBS ${CARBON})
 else()
-  find_package(OpenGL)
-  find_package(X11)
   if(TARGET_OS STREQUAL "linux")
     set(PLATFORM_LIBS rt) # clock_gettime for glibc < 2.17
   else()
@@ -778,33 +773,6 @@ target_link_libraries(${TARGET_VERSIONSRV} ${LIBS})
 list(APPEND TARGETS_OWN ${TARGET_MASTERSRV} ${TARGET_VERSIONSRV})
 list(APPEND TARGETS_LINK ${TARGET_MASTERSRV} ${TARGET_VERSIONSRV})
 
-set(TARGETS_TOOLS)
-set_src(TOOLS GLOB src/tools
-  crapnet.cpp
-  fake_server.cpp
-  map_resave.cpp
-  map_version.cpp
-  packetgen.cpp
-)
-foreach(ABS_T ${TOOLS})
-  file(RELATIVE_PATH T "${PROJECT_SOURCE_DIR}/src/tools/" ${ABS_T})
-  if(T MATCHES "\\.cpp$")
-    string(REGEX REPLACE "\\.cpp$" "" TOOL "${T}")
-    add_executable(${TOOL} EXCLUDE_FROM_ALL
-      ${DEPS}
-      src/tools/${TOOL}.cpp
-      ${EXTRA_TOOL_SRC}
-      $<TARGET_OBJECTS:engine-shared>
-    )
-    target_link_libraries(${TOOL} ${LIBS})
-    list(APPEND TARGETS_TOOLS ${TOOL})
-  endif()
-endforeach()
-
-list(APPEND TARGETS_OWN ${TARGETS_TOOLS})
-list(APPEND TARGETS_LINK ${TARGETS_TOOLS})
-
-add_custom_target(tools DEPENDS ${TARGETS_TOOLS})
 add_custom_target(everything DEPENDS ${TARGETS_OWN})
 
 ########################################################################
