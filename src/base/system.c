@@ -368,11 +368,6 @@ unsigned io_read(IOHANDLE io, void *buffer, unsigned size)
 	return fread(buffer, 1, size, (FILE*)io);
 }
 
-unsigned io_unread_byte(IOHANDLE io, unsigned char byte)
-{
-	return ungetc(byte, (FILE*)io) == EOF;
-}
-
 unsigned io_skip(IOHANDLE io, int size)
 {
 	fseek((FILE*)io, size, SEEK_CUR);
@@ -1995,14 +1990,14 @@ void str_clean_whitespaces_simple(char *str_in)
 
 char *str_skip_to_whitespace(char *str)
 {
-	while(*str && (*str != ' ' && *str != '\t' && *str != '\n'))
+	while(*str && (*str != ' ' && *str != '\t' && *str != '\n' && *str != '\r'))
 		str++;
 	return str;
 }
 
 const char *str_skip_to_whitespace_const(const char *str)
 {
-	while(*str && (*str != ' ' && *str != '\t' && *str != '\n'))
+	while(*str && (*str != ' ' && *str != '\t' && *str != '\n' && *str != '\r'))
 		str++;
 	return str;
 }
@@ -2072,6 +2067,34 @@ int str_comp_filenames(const char *a, const char *b)
 			break;
 	}
 	return tolower(*a) - tolower(*b);
+}
+
+int is_whitespace(char chr)
+{
+	return (chr == ' ' || chr == '\t' || chr == '\n' || chr == '\r');
+}
+
+int str_comp_nocase_whitespace(const char* str1, const char* str2)
+{
+	const char* c1 = str1;
+	const char* c2 = str2;
+	
+	char s1;
+	char s2;
+	
+	while(*c1 && *c2 && !is_whitespace(*c1) && !is_whitespace(*c2) && (*c1 == *c2 || (*c1 < *c2 ? *c1 + 32 == *c2 : *c2 + 32 == *c1)))
+	{
+		++c1;
+		++c2;
+	}
+	
+	s1 = (is_whitespace(*c1)) ? '\0' : *c1;
+	s2 = (is_whitespace(*c2)) ? '\0' : *c2;
+	
+	if(s1 >= 65 && s1 <= 90) s1 += 32;
+	if(s2 >= 65 && s2 <= 90) s2 += 32;
+	
+	return s1 < s2 ? -1 : (s1 > s2) ? 1 : 0;
 }
 
 const char *str_startswith_nocase(const char *str, const char *prefix)

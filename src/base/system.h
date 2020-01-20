@@ -221,21 +221,6 @@ IOHANDLE io_open(const char *filename, int flags);
 unsigned io_read(IOHANDLE io, void *buffer, unsigned size);
 
 /*
-	Function: io_unread_byte
-		"Unreads" a single byte, making it available for future read
-		operations.
-
-	Parameters:
-		io - Handle to the file to unread the byte from.
-		byte - Byte to unread.
-
-	Returns:
-		Returns 0 on success and 1 on failure.
-
-*/
-unsigned io_unread_byte(IOHANDLE io, unsigned char byte);
-
-/*
 	Function: io_skip
 		Skips data in a file.
 
@@ -1066,6 +1051,21 @@ int str_comp_num(const char *a, const char *b, const int num);
 		- The strings are treated as zero-terminated strings.
 */
 int str_comp_filenames(const char *a, const char *b);
+
+/*
+	Function: is_whitespace
+		Checks if character is whitespace
+	Parameters:
+		chr - character to check
+	Returns:
+		true - is whitespace
+*/
+int is_whitespace(char chr);
+
+/*	
+like str_comp_nocase. just with whitespaces additionally
+*/
+int str_comp_nocase_whitespace(const char* pStr, const char* pStr2);
 
 /*
 	Function: str_startswith_nocase

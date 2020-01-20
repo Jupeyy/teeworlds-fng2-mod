@@ -80,7 +80,7 @@ class WeaponSpec(Struct):
 		self.visual_size = Int(96)
 
 		self.firedelay = Int(500)
-		self.maxammo = Int(10)
+		self.maxammo = Int(5)
 		self.ammoregentime = Int(0)
 		self.damage = Int(1)
 

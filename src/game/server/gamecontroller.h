@@ -34,7 +34,6 @@ class IGameController
 	int m_UnbalancedTick;
 
 	virtual bool CanBeMovedOnBalance(int ClientID) const;
-	void CheckTeamBalance();
 	void DoTeamBalance();
 
 	// game
@@ -61,7 +60,7 @@ class IGameController
 	void ResetGame();
 	void SetGameState(EGameState GameState, int Timer=0);
 	void StartMatch();
-	void StartRound();
+	virtual void StartRound();
 
 	// map
 	char m_aMapWish[128];
@@ -90,9 +89,6 @@ class IGameController
 	float EvaluateSpawnPos(CSpawnEval *pEval, vec2 Pos) const;
 	void EvaluateSpawnType(CSpawnEval *pEval, int Type) const;
 
-	// team
-	int ClampTeam(int Team) const;
-
 protected:
 	CGameContext *GameServer() const { return m_pGameServer; }
 	IServer *Server() const { return m_pServer; }
@@ -104,12 +100,15 @@ protected:
 	int m_SuddenDeath;
 	int m_aTeamscore[NUM_TEAMS];
 
-	void EndMatch() { SetGameState(IGS_END_MATCH, TIMER_END); }
-	void EndRound() { SetGameState(IGS_END_ROUND, TIMER_END/2); }
+	virtual void EndMatch() { SetGameState(IGS_END_MATCH, TIMER_END); }
+	virtual void EndRound() { SetGameState(IGS_END_ROUND, TIMER_END/2); }
 
 	// info
 	int m_GameFlags;
+public:
 	const char *m_pGameType;
+protected:
+
 	struct CGameInfo
 	{
 		int m_MatchCurrent;
@@ -209,6 +208,8 @@ public:
 
 	void OnReset();
 
+	virtual void OnResetPlayer(int ClientID) = 0;
+
 	// game
 	enum
 	{
@@ -241,6 +242,8 @@ public:
 	bool IsTeamplay() const { return m_GameFlags&GAMEFLAG_TEAMS; }
 	bool IsSurvival() const { return m_GameFlags&GAMEFLAG_SURVIVAL; }
 
+	bool IsGameOver() const { return m_GameState == IGS_END_ROUND || m_GameState == IGS_END_MATCH; }
+
 	const char *GetGameType() const { return m_pGameType; }
 
 	// map
@@ -252,7 +255,14 @@ public:
 
 	// team
 	bool CanJoinTeam(int Team, int NotThisID) const;
-	bool CanChangeTeam(CPlayer *pPplayer, int JoinTeam) const;
+	
+	//fng2
+	virtual bool CheckTeamBalance();
+	virtual bool CanChangeTeam(CPlayer *pPplayer, int JoinTeam) const;
+	virtual int ClampTeam(int Team) const;
+	
+	virtual void ShuffleTeams();
+	virtual bool UseFakeTeams();
 
 	void DoTeamChange(class CPlayer *pPlayer, int Team, bool DoChatMsg=true);
 	void ForceTeamBalance() { if(!(m_GameFlags&GAMEFLAG_SURVIVAL)) DoTeamBalance(); }

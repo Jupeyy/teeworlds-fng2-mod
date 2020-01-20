@@ -165,6 +165,18 @@ public:
 
 	CNetObj_PlayerInput m_Input;
 
+	struct sCharacterCoreStats
+	{
+		int m_NumJumped;
+		float m_NumTilesMoved;
+		int m_NumHooks;
+		float m_MaxSpeed;
+		int m_NumTeeCollisions;
+		
+		//this is just for calculation
+		char m_HadCollision[MAX_CLIENTS];
+	} m_CoreStats;
+
 	int m_TriggeredEvents;
 
 	void Init(CWorldCore *pWorld, CCollision *pCollision);

@@ -20,13 +20,17 @@ class CPlayer
 
 public:
 	CPlayer(CGameContext *pGameServer, int ClientID, bool Dummy, bool AsSpec = false);
-	~CPlayer();
+	virtual ~CPlayer();
 
 	void Init(int CID);
 
 	void TryRespawn();
 	void Respawn();
 	void SetTeam(int Team, bool DoChatMsg=true);
+
+	//doesnt kill the character
+	void SetTeamSilent(int Team);
+
 	int GetTeam() const { return m_Team; };
 	int GetCID() const { return m_ClientID; };
 	bool IsDummy() const { return m_Dummy; }
@@ -39,8 +43,46 @@ public:
 	void OnPredictedInput(CNetObj_PlayerInput *NewInput);
 	void OnDisconnect();
 
-	void KillCharacter(int Weapon = WEAPON_GAME);
+	void KillCharacter(int Weapon = WEAPON_GAME, bool Forced = false);
 	CCharacter *GetCharacter();
+
+	virtual void ResetStats();
+
+	int m_UnknownPlayerFlag;
+
+	struct sPlayerStats
+	{
+		//core stats
+		int m_NumJumped;
+		float m_NumTilesMoved;
+		int m_NumHooks;
+		float m_MaxSpeed;
+		int m_NumTeeCollisions;
+		//other stats
+		int m_NumFreezeTicks;
+		int m_NumEmotes;		
+	
+		//score things
+		int m_Kills; //kills made by weapon
+		int m_GrabsNormal; //kills made by grabbing oponents into spikes - normal spikes
+		int m_GrabsTeam; //kills made by grabbing oponents into spikes - team spikes
+		int m_GrabsFalse; //kills made by grabbing oponents into spikes - oponents spikes
+		int m_GrabsGold; //kills made by grabbing oponents into spikes - gold spikes
+		int m_Deaths; //death by spikes -- we don't make a difference of the spike types here
+		int m_Hits; //hits by oponents weapon
+		int m_Selfkills;
+		int m_Teamkills;
+		int m_Unfreezes; //number of actual unfreezes of teammates
+		int m_UnfreezingHammerHits; //number of hammers to a frozen teammate
+		
+		int m_Shots; //the shots a player made
+	} m_Stats;
+
+	int m_Emotion;
+	long long m_EmotionDuration;
+
+	//how often did player spam
+	int m_ChatSpamCount;
 
 	//---------------------------------------------------------
 	// this is used for snapping so we know how we can clip the view for the player
@@ -130,6 +172,8 @@ private:
 	int m_SpectatorID;
 	class CFlag *m_pSpecFlag;
 	bool m_ActiveSpecSwitch;
+
+	void CalcScore();
 };
 
 #endif

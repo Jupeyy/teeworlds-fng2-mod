@@ -105,22 +105,6 @@ set(SERVER_EXECUTABLE fng2_srv CACHE STRING "Name of the built server executable
 ########################################################################
 
 find_package(PythonInterp)
-if(DOWNLOAD_DEPENDENCIES)
-  if(PYTHON_EXECUTABLE AND TARGET_OS STREQUAL "windows" AND TARGET_BITS)
-    set(DOWNLOADS)
-    foreach(d freetype sdl)
-      if(NOT EXISTS "${PROJECT_SOURCE_DIR}/other/${d}/${TARGET_OS}/lib${TARGET_BITS}")
-        list(APPEND DOWNLOADS ${d})
-      endif()
-    endforeach()
-    if(DOWNLOADS)
-      message(STATUS "Downloading Freetype and SDL 2")
-      execute_process(COMMAND ${PYTHON_EXECUTABLE} scripts/download.py ${DOWNLOADS}
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-      )
-    endif()
-  endif()
-endif()
 
 ########################################################################
 # Compiler flags
@@ -309,7 +293,6 @@ find_package(ZLIB)
 find_package(Crypto)
 find_package(Git)
 find_package(GTest)
-find_package(SDL2)
 find_package(Threads)
 
 
@@ -353,15 +336,11 @@ endfunction()
 if(TARGET_OS AND TARGET_OS STREQUAL "mac")
   show_dependency_status("Dmg tools" DMGTOOLS)
 endif()
-show_dependency_status("Freetype" FREETYPE)
 if(TARGET_OS AND TARGET_OS STREQUAL "mac")
   show_dependency_status("Hdiutil" HDIUTIL)
 endif()
 show_dependency_status("OpenSSL Crypto" CRYPTO)
-show_dependency_status("Pnglite" PNGLITE)
 show_dependency_status("PythonInterp" PYTHONINTERP)
-show_dependency_status("SDL2" SDL2)
-show_dependency_status("Wavpack" WAVPACK)
 show_dependency_status("Zlib" ZLIB)
 
 if(NOT(PYTHONINTERP_FOUND))
@@ -470,6 +449,37 @@ set(DEP_MD5)
 if(NOT CRYPTO_FOUND)
   set(DEP_MD5 $<TARGET_OBJECTS:md5>)
 endif()
+
+########################################################################
+# DATA
+########################################################################
+
+set(EXPECTED_DATA
+  maps/AliveFNG.map
+  maps/IIT_Edited.map
+)
+
+if(NOT EXISTS ${PROJECT_SOURCE_DIR}/datasrc/maps/AliveFNG.map)
+  message(WARNING "Missing datasrc/maps submodule. Please download a source release or update your git submodules with `git submodule update --init`")
+  foreach(item ${EXPECTED_DATA})
+    if(item MATCHES "^maps/")
+      list(REMOVE_ITEM EXPECTED_DATA ${item})
+    endif()
+  endforeach()
+endif()
+
+set_glob(DATA GLOB_RECURSE "json;map;png;rules;ttf;txt;wv" datasrc ${EXPECTED_DATA})
+
+########################################################################
+# COPY DATA
+########################################################################
+
+foreach(datafile ${DATA})
+  file(RELATIVE_PATH OUT ${PROJECT_SOURCE_DIR}/datasrc ${datafile})
+  get_filename_component(DESTINATION ${OUT} PATH)
+  file(MAKE_DIRECTORY ${DESTINATION})
+  file(COPY ${datafile} DESTINATION ${DESTINATION})
+endforeach()
 
 ########################################################################
 # CODE GENERATION
@@ -641,6 +651,7 @@ set_src(GAME_SHARED GLOB src/game
   mapitems.h
   tuning.h
   variables.h
+  variables_special.h
   version.h
   voting.h
 )
@@ -687,24 +698,27 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   entity.h
   eventhandler.cpp
   eventhandler.h
+  fng2define.h
   gamecontext.cpp
   gamecontext.h
+  gamecontext_additional_gametypes.h
+  gamecontext_additional_gametypes_includes.h
   gamecontroller.cpp
   gamecontroller.h
-  gamemodes/ctf.cpp
-  gamemodes/ctf.h
-  gamemodes/dm.cpp
-  gamemodes/dm.h
-  gamemodes/lms.cpp
-  gamemodes/lms.h
-  gamemodes/lts.cpp
-  gamemodes/lts.h
-  gamemodes/mod.cpp
-  gamemodes/mod.h
-  gamemodes/tdm.cpp
-  gamemodes/tdm.h
+  gamemodes/fng2.cpp
+  gamemodes/fng2.h
+  gamemodes/fng2boom.cpp
+  gamemodes/fng2boom.h
+  #gamemodes/fng2_4teams.cpp
+  #gamemodes/fng2_4teams.h
+  gamemodes/fng2boomsolo.cpp
+  gamemodes/fng2boomsolo.h
+  gamemodes/fng2solo.cpp
+  gamemodes/fng2solo.h
   gameworld.cpp
   gameworld.h
+  laser_text.cpp
+  laser_text.h
   player.cpp
   player.h
 )

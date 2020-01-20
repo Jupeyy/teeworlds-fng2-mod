@@ -50,6 +50,10 @@ public:
 	virtual void SetClientCountry(int ClientID, int Country) = 0;
 	virtual void SetClientScore(int ClientID, int Score) = 0;
 
+	//fng2
+	virtual void SetClientVersion(int ClientID, int Version) = 0;
+	virtual void SetClientUnknownFlags(int ClientID, int UnknownFlags) = 0;
+
 	virtual int SnapNewID() = 0;
 	virtual void SnapFreeID(int ID) = 0;
 	virtual void *SnapNewItem(int Type, int ID, int Size) = 0;
@@ -88,7 +92,7 @@ public:
 
 	virtual void OnClientConnected(int ClientID, bool AsSpec) = 0;
 	virtual void OnClientEnter(int ClientID) = 0;
-	virtual void OnClientDrop(int ClientID, const char *pReason) = 0;
+	virtual bool OnClientDrop(int ClientID, const char *pReason, bool Force) = 0;
 	virtual void OnClientDirectInput(int ClientID, void *pInput) = 0;
 	virtual void OnClientPredictedInput(int ClientID, void *pInput) = 0;
 

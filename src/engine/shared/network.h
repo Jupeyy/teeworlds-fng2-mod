@@ -135,7 +135,7 @@ enum
 };
 
 
-typedef int (*NETFUNC_DELCLIENT)(int ClientID, const char* pReason, void *pUser);
+typedef int (*NETFUNC_DELCLIENT)(int ClientID, const char* pReason, void *pUser, bool Force);
 typedef int (*NETFUNC_NEWCLIENT)(int ClientID, void *pUser);
 
 typedef unsigned int TOKEN;
@@ -439,7 +439,7 @@ public:
 	void AddToken(const NETADDR *pAddr, TOKEN Token) { m_TokenCache.AddToken(pAddr, Token, 0); };
 
 	//
-	int Drop(int ClientID, const char *pReason);
+	int Drop(int ClientID, const char *pReason, bool ForceDisconnect);
 
 	// status requests
 	const NETADDR *ClientAddr(int ClientID) const { return m_aSlots[ClientID].m_Connection.PeerAddress(); }

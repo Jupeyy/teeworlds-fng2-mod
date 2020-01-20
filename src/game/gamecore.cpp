@@ -73,6 +73,8 @@ void CCharacterCore::Reset()
 	m_Jumped = 0;
 	m_TriggeredEvents = 0;
 	m_Death = false;
+
+	mem_zero(&m_CoreStats, sizeof(m_CoreStats));
 }
 
 void CCharacterCore::Tick(bool UseInput)
@@ -111,12 +113,14 @@ void CCharacterCore::Tick(bool UseInput)
 					m_TriggeredEvents |= COREEVENTFLAG_GROUND_JUMP;
 					m_Vel.y = -m_pWorld->m_Tuning.m_GroundJumpImpulse;
 					m_Jumped |= 1;
+					++m_CoreStats.m_NumJumped;
 				}
 				else if(!(m_Jumped&2))
 				{
 					m_TriggeredEvents |= COREEVENTFLAG_AIR_JUMP;
 					m_Vel.y = -m_pWorld->m_Tuning.m_AirJumpImpulse;
 					m_Jumped |= 3;
+					++m_CoreStats.m_NumJumped;
 				}
 			}
 		}
@@ -134,6 +138,7 @@ void CCharacterCore::Tick(bool UseInput)
 				m_HookedPlayer = -1;
 				m_HookTick = 0;
 				//m_TriggeredEvents |= COREEVENTFLAG_HOOK_LAUNCH;
+				++m_CoreStats.m_NumHooks;
 			}
 		}
 		else
@@ -318,7 +323,16 @@ void CCharacterCore::Tick(bool UseInput)
 
 				m_Vel += Dir*a*(Velocity*0.75f);
 				m_Vel *= 0.85f;
+
+				if(m_CoreStats.m_HadCollision[i] == 0)
+				{
+					m_CoreStats.m_HadCollision[i] = 1;
+					++m_CoreStats.m_NumTeeCollisions;
+				}
 			}
+			//only set it to null here... should be rare that a tee bounces from another tee in the exact tick the other tee spawns and bounced from him when he died
+			else
+				m_CoreStats.m_HadCollision[i] = 0;
 
 			// handle hook influence
 			if(m_HookedPlayer == i && m_pWorld->m_Tuning.m_PlayerHooking)
@@ -358,6 +372,11 @@ void CCharacterCore::Move()
 	vec2 NewPos = m_Pos;
 	m_pCollision->MoveBox(&NewPos, &m_Vel, vec2(PhysSize, PhysSize), 0, &m_Death);
 
+	if(m_CoreStats.m_MaxSpeed < absolute(m_Vel.x))
+	{
+		m_CoreStats.m_MaxSpeed = absolute(m_Vel.x);
+	}
+
 	m_Vel.x = m_Vel.x*(1.0f/RampValue);
 
 	if(m_pWorld->m_Tuning.m_PlayerCollision)
@@ -379,9 +398,15 @@ void CCharacterCore::Move()
 				if(D < PhysSize && D >= 0.0f)
 				{
 					if(a > 0.0f)
+					{
+						m_CoreStats.m_NumTilesMoved += distance(m_Pos, LastPos);
 						m_Pos = LastPos;
+					}
 					else if(distance(NewPos, pCharCore->m_Pos) > D)
+					{
+						m_CoreStats.m_NumTilesMoved += distance(m_Pos, NewPos);
 						m_Pos = NewPos;
+					}
 					return;
 				}
 			}
@@ -389,6 +414,7 @@ void CCharacterCore::Move()
 		}
 	}
 
+	m_CoreStats.m_NumTilesMoved += distance(m_Pos, NewPos);
 	m_Pos = NewPos;
 }
 

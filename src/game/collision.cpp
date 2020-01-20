@@ -45,6 +45,31 @@ void CCollision::Init(class CLayers *pLayers)
 		case TILE_NOHOOK:
 			m_pTiles[i].m_Index = COLFLAG_SOLID|COLFLAG_NOHOOK;
 			break;
+		//FNG Spikes
+		case TILE_SPIKE_NORMAL:
+			m_pTiles[i].m_Index = FLAG_SPIKE_NORMAL;
+			m_pTiles[i].m_Reserved = 1;
+			break;
+		case TILE_SPIKE_RED:
+			m_pTiles[i].m_Index = FLAG_SPIKE_RED;
+			m_pTiles[i].m_Reserved = 1;
+			break;
+		case TILE_SPIKE_BLUE:
+			m_pTiles[i].m_Index = FLAG_SPIKE_BLUE;
+			m_pTiles[i].m_Reserved = 1;
+			break;
+		case TILE_SPIKE_GOLD:
+			m_pTiles[i].m_Index = FLAG_SPIKE_GOLD;
+			m_pTiles[i].m_Reserved = 1;
+			break;
+		case TILE_SPIKE_GREEN:
+			m_pTiles[i].m_Index = FLAG_SPIKE_GREEN;
+			m_pTiles[i].m_Reserved = 1;
+			break;
+		case TILE_SPIKE_PURPLE:
+			m_pTiles[i].m_Index = FLAG_SPIKE_PURPLE;
+			m_pTiles[i].m_Reserved = 1;
+			break;
 		default:
 			m_pTiles[i].m_Index = 0;
 		}
@@ -56,7 +81,10 @@ int CCollision::GetTile(int x, int y) const
 	int Nx = clamp(x/32, 0, m_Width-1);
 	int Ny = clamp(y/32, 0, m_Height-1);
 
-	return m_pTiles[Ny*m_Width+Nx].m_Index > 128 ? 0 : m_pTiles[Ny*m_Width+Nx].m_Index;
+	if(m_pTiles[Ny*m_Width + Nx].m_Reserved)
+		return m_pTiles[Ny*m_Width + Nx].m_Index << COLFLAG_SPIKE_SHIFT;
+	else
+		return m_pTiles[Ny*m_Width+Nx].m_Index > 128 ? 0 : m_pTiles[Ny*m_Width+Nx].m_Index;
 }
 
 bool CCollision::IsTile(int x, int y, int Flag) const

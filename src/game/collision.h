@@ -23,6 +23,38 @@ public:
 		COLFLAG_NOHOOK=4,
 	};
 
+	enum
+	{
+		FLAG_SPIKE_NORMAL = 1 << 0,
+		FLAG_SPIKE_RED = 1 << 1,
+		FLAG_SPIKE_BLUE = 1 << 2,
+		FLAG_SPIKE_GOLD = 1 << 3,
+		FLAG_SPIKE_GREEN = 1 << 4,
+		FLAG_SPIKE_PURPLE = 1 << 5,
+	};
+
+	enum
+	{
+		COLFLAG_SPIKE_NORMAL = FLAG_SPIKE_NORMAL << 16,
+		COLFLAG_SPIKE_RED = FLAG_SPIKE_RED << 16,
+		COLFLAG_SPIKE_BLUE = FLAG_SPIKE_BLUE << 16,
+		COLFLAG_SPIKE_GOLD = FLAG_SPIKE_GOLD << 16,
+		COLFLAG_SPIKE_GREEN = FLAG_SPIKE_GREEN << 16,
+		COLFLAG_SPIKE_PURPLE = FLAG_SPIKE_PURPLE << 16,
+
+		COLFLAG_SPIKE_SHIFT = 16,
+	};
+
+	enum
+	{
+		TILE_SPIKE_GOLD = 7,
+		TILE_SPIKE_NORMAL = 8,
+		TILE_SPIKE_RED = 9,
+		TILE_SPIKE_BLUE = 10,
+		TILE_SPIKE_GREEN = 14,
+		TILE_SPIKE_PURPLE = 15,
+	};
+
 	CCollision();
 	void Init(class CLayers *pLayers);
 	bool CheckPoint(float x, float y, int Flag=COLFLAG_SOLID) const { return IsTile(round_to_int(x), round_to_int(y), Flag); }

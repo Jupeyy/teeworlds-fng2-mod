@@ -64,6 +64,8 @@ class CServer : public IServer
 	class IGameServer *m_pGameServer;
 	class IConsole *m_pConsole;
 	class IStorage *m_pStorage;
+
+	int m_PlayerCount;
 public:
 	class IGameServer *GameServer() { return m_pGameServer; }
 	class IConsole *Console() { return m_pConsole; }
@@ -135,6 +137,10 @@ public:
 		const IConsole::CCommandInfo *m_pRconCmdToSend;
 		const CMapListEntry *m_pMapListEntryToSend;
 
+		//fng2
+		int m_UnknownFlags;
+		int m_ClientVersion;
+
 		void Reset();
 	};
 
@@ -155,6 +161,9 @@ public:
 	int m_RconClientID;
 	int m_RconAuthLevel;
 	int m_PrintCBIndex;
+
+	//fng2
+	int m_StopServerWhenEmpty;
 
 	int64 m_Lastheartbeat;
 
@@ -203,7 +212,12 @@ public:
 	virtual void SetClientCountry(int ClientID, int Country);
 	virtual void SetClientScore(int ClientID, int Score);
 
+	//fng2
+	virtual void SetClientVersion(int ClientID, int Version);
+	virtual void SetClientUnknownFlags(int ClientID, int UnknownFlags);
+
 	void Kick(int ClientID, const char *pReason);
+	void KickForce(int ClientID, const char *pReason);
 
 	void DemoRecorder_HandleAutoStart();
 	bool DemoRecorder_IsRecording();
@@ -230,8 +244,9 @@ public:
 
 	void DoSnapshot();
 
+	static int NewClientCallbackImpl(int ClientID, void *pUser);
 	static int NewClientCallback(int ClientID, void *pUser);
-	static int DelClientCallback(int ClientID, const char *pReason, void *pUser);
+	static int DelClientCallback(int ClientID, const char *pReason, void *pUser, bool ForceDisconnect);
 
 	void SendMap(int ClientID);
 	void SendConnectionReady(int ClientID);
@@ -274,8 +289,10 @@ public:
 	static void ConchainConsoleOutputLevelUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainRconPasswordSet(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 
-	void RegisterCommands();
+	//fng2
+	static void ConShutdownEmpty(IConsole::IResult *pResult, void *pUser);
 
+	void RegisterCommands();
 
 	virtual int SnapNewID();
 	virtual void SnapFreeID(int ID);

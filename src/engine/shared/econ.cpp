@@ -23,7 +23,7 @@ int CEcon::NewClientCallback(int ClientID, void *pUser)
 	return 0;
 }
 
-int CEcon::DelClientCallback(int ClientID, const char *pReason, void *pUser)
+int CEcon::DelClientCallback(int ClientID, const char *pReason, void *pUser, bool ForceDisconnect)
 {
 	CEcon *pThis = (CEcon *)pUser;
 

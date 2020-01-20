@@ -7,6 +7,7 @@
 #include "gamecontroller.h"
 #include "player.h"
 
+#include <engine/shared/config.h>
 
 MACRO_ALLOC_POOL_ID_IMPL(CPlayer, MAX_CLIENTS)
 
@@ -33,6 +34,14 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, bool Dummy, bool AsSpe
 	m_RespawnDisabled = GameServer()->m_pController->GetStartRespawnState();
 	m_DeadSpecMode = false;
 	m_Spawning = 0;
+
+	//fng2
+	ResetStats();
+	m_Emotion = EMOTE_NORMAL;
+	m_EmotionDuration = 0;
+
+	m_ChatSpamCount = 0;
+	m_UnknownPlayerFlag = 0;
 }
 
 CPlayer::~CPlayer()
@@ -45,6 +54,9 @@ void CPlayer::Tick()
 {
 	if(!IsDummy() && !Server()->ClientIngame(m_ClientID))
 		return;
+
+	//calculate the current score based on all fng stats
+	CalcScore();
 
 	Server()->SetClientScore(m_ClientID, m_Score);
 
@@ -80,7 +92,7 @@ void CPlayer::Tick()
 		if(!m_pCharacter && m_Team == TEAM_SPECTATORS && m_SpecMode == SPEC_FREEVIEW)
 			m_ViewPos -= vec2(clamp(m_ViewPos.x-m_LatestActivity.m_TargetX, -500.0f, 500.0f), clamp(m_ViewPos.y-m_LatestActivity.m_TargetY, -400.0f, 400.0f));
 
-		if(!m_pCharacter && m_DieTick+Server()->TickSpeed()*3 <= Server()->Tick() && !m_DeadSpecMode)
+		if(!m_pCharacter && m_DieTick+Server()->TickSpeed() * g_Config.m_SvDieRespawnDelay <= Server()->Tick() && !m_DeadSpecMode)
 			Respawn();
 
 		if(!m_pCharacter && m_Team == TEAM_SPECTATORS && m_pSpecFlag)
@@ -101,6 +113,9 @@ void CPlayer::Tick()
 
 		if(!m_DeadSpecMode && m_LastActionTick != Server()->Tick())
 			++m_InactivityTickCounter;
+
+		if(m_EmotionDuration != 0) 
+			--m_EmotionDuration;
 	}
 	else
 	{
@@ -109,6 +124,9 @@ void CPlayer::Tick()
 		++m_ScoreStartTick;
 		++m_LastActionTick;
 		++m_TeamChangeTick;
+
+		if(m_EmotionDuration != 0)
+			++m_EmotionDuration;
  	}
 }
 
@@ -200,7 +218,7 @@ void CPlayer::Snap(int SnappingClient)
 
 void CPlayer::OnDisconnect()
 {
-	KillCharacter();
+	KillCharacter(WEAPON_GAME, true);
 
 	if(m_Team != TEAM_SPECTATORS)
 	{
@@ -233,6 +251,17 @@ void CPlayer::OnPredictedInput(CNetObj_PlayerInput *NewInput)
 
 void CPlayer::OnDirectInput(CNetObj_PlayerInput *NewInput)
 {
+	//non standard client flag was used
+	if (NewInput->m_PlayerFlags & 0xfffffff0) {
+		m_UnknownPlayerFlag |= (NewInput->m_PlayerFlags & 0xfffffff0);
+		Server()->SetClientUnknownFlags(m_ClientID, m_UnknownPlayerFlag);
+	}
+
+	//in tournaments every other flag is disallowed
+	if (g_Config.m_SvTournamentMode == 1) {
+		if (NewInput->m_PlayerFlags & 0xfffffff0) NewInput->m_PlayerFlags &= 0xf;
+	}
+
 	if(GameServer()->m_World.m_Paused)
 	{
 		m_PlayerFlags = NewInput->m_PlayerFlags;
@@ -316,9 +345,9 @@ CCharacter *CPlayer::GetCharacter()
 	return 0;
 }
 
-void CPlayer::KillCharacter(int Weapon)
+void CPlayer::KillCharacter(int Weapon, bool Forced)
 {
-	if(m_pCharacter)
+	if(m_pCharacter && (!m_pCharacter->IsFrozen() || Forced))
 	{
 		m_pCharacter->Die(m_ClientID, Weapon);
 		delete m_pCharacter;
@@ -427,7 +456,7 @@ void CPlayer::UpdateDeadSpecMode()
 
 void CPlayer::SetTeam(int Team, bool DoChatMsg)
 {
-	KillCharacter();
+	KillCharacter(WEAPON_GAME, true);
 
 	m_Team = Team;
 	m_LastActionTick = Server()->Tick();
@@ -438,6 +467,41 @@ void CPlayer::SetTeam(int Team, bool DoChatMsg)
 
 	// we got to wait 0.5 secs before respawning
 	m_RespawnTick = Server()->Tick()+Server()->TickSpeed()/2;
+
+	if(Team == TEAM_SPECTATORS)
+	{
+		// update spectator modes
+		for(int i = 0; i < MAX_CLIENTS; ++i)
+		{
+			if(GameServer()->m_apPlayers[i] && GameServer()-> m_apPlayers[i]->m_SpecMode == SPEC_PLAYER && GameServer()->m_apPlayers[i]->m_SpectatorID == m_ClientID)
+			{
+				if(GameServer()->m_apPlayers[i]->m_DeadSpecMode)
+					GameServer()->m_apPlayers[i]->UpdateDeadSpecMode();
+				else
+				{
+					GameServer()->m_apPlayers[i]->m_SpecMode = SPEC_FREEVIEW;
+					GameServer()->m_apPlayers[i]->m_SpectatorID = -1;
+				}
+			}
+		}
+	}
+}
+
+void CPlayer::SetTeamSilent(int Team)
+{
+	// clamp the team
+	Team = GameServer()->m_pController->ClampTeam(Team);
+	if(m_Team == Team)
+		return;
+
+	m_Team = Team;
+	m_LastActionTick = Server()->Tick();
+	m_SpecMode = SPEC_FREEVIEW;
+	m_SpectatorID = -1;
+	m_pSpecFlag = 0;
+	m_DeadSpecMode = false;
+
+	GameServer()->m_pController->OnPlayerInfoChange(GameServer()->m_apPlayers[m_ClientID]);
 
 	if(Team == TEAM_SPECTATORS)
 	{
@@ -469,4 +533,26 @@ void CPlayer::TryRespawn()
 	m_pCharacter = new(m_ClientID) CCharacter(&GameServer()->m_World);
 	m_pCharacter->Spawn(this, SpawnPos);
 	GameServer()->CreatePlayerSpawn(SpawnPos);
+}
+
+void CPlayer::CalcScore()
+{
+	if(g_Config.m_SvScoreDisplay == 0)
+	{
+		m_Score = m_Stats.m_Kills + m_Stats.m_Unfreezes;
+		//TODO: make this configurable
+		m_Score += (m_Stats.m_GrabsNormal * g_Config.m_SvPlayerScoreSpikeNormal) + (m_Stats.m_GrabsTeam * g_Config.m_SvPlayerScoreSpikeTeam) + (m_Stats.m_GrabsFalse * g_Config.m_SvPlayerScoreSpikeFalse) + (m_Stats.m_GrabsGold * g_Config.m_SvPlayerScoreSpikeGold);
+	}
+	else
+	{
+		m_Score = m_Stats.m_Kills + m_Stats.m_Unfreezes - m_Stats.m_Hits;
+		//TODO: make this configurable
+		m_Score += (m_Stats.m_GrabsNormal * g_Config.m_SvPlayerScoreSpikeNormal) + (m_Stats.m_GrabsTeam * g_Config.m_SvPlayerScoreSpikeTeam) + (m_Stats.m_GrabsFalse * g_Config.m_SvPlayerScoreSpikeFalse) + (m_Stats.m_GrabsGold * g_Config.m_SvPlayerScoreSpikeGold) - (m_Stats.m_Deaths * g_Config.m_SvPlayerScoreSpikeNormal);
+		m_Score -= m_Stats.m_Teamkills;	
+	}
+}
+
+void CPlayer::ResetStats()
+{
+	mem_zero(&m_Stats, sizeof(m_Stats));
 }

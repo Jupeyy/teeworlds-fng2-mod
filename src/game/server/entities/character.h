@@ -39,7 +39,7 @@ public:
 	void DoWeaponSwitch();
 
 	void HandleWeapons();
-	void HandleNinja();
+	void HandleFreeze();
 
 	void OnPredictedInput(CNetObj_PlayerInput *pNewInput);
 	void OnDirectInput(CNetObj_PlayerInput *pNewInput);
@@ -47,6 +47,13 @@ public:
 	void FireWeapon();
 
 	void Die(int Killer, int Weapon);
+
+	void DieSpikes(int pPlayerID, int spikes_flag);
+	bool IsFalseSpike(int Team, int spike_flag);
+
+	void Hit(int Killer, int Weapon);
+	void TakeHammerHit(CCharacter* pFrom);
+
 	bool TakeDamage(vec2 Force, vec2 Source, int Dmg, int From, int Weapon);
 
 	bool Spawn(class CPlayer *pPlayer, vec2 Pos);
@@ -56,14 +63,22 @@ public:
 	bool IncreaseArmor(int Amount);
 
 	bool GiveWeapon(int Weapon, int Ammo);
-	void GiveNinja();
+	void Freeze(int TimeInSec);
+	void Unfreeze(int pPlayerID);
 
 	void SetEmote(int Emote, int Tick);
 
 	bool IsAlive() const { return m_Alive; }
 	class CPlayer *GetPlayer() { return m_pPlayer; }
 
+	bool IsFrozen();
+
+	void SetKiller(int pKillerID, unsigned int pHookTicks);
+
 private:
+	int NetworkClipped(int SnappingClient, float& Distance);
+	int NetworkClipped(int SnappingClient, float& Distance, vec2 CheckPos);
+
 	// player controlling this character
 	class CPlayer *m_pPlayer;
 
@@ -80,6 +95,9 @@ private:
 		bool m_Got;
 
 	} m_aWeapons[NUM_WEAPONS];
+
+	int m_InvincibleTick;
+	int m_SpawnTick;
 
 	int m_ActiveWeapon;
 	int m_LastWeapon;
@@ -109,14 +127,18 @@ private:
 
 	int m_TriggeredEvents;
 
-	// ninja
+	// freeze
 	struct
 	{
-		vec2 m_ActivationDir;
 		int m_ActivationTick;
-		int m_CurrentMoveTime;
-		int m_OldVelAmount;
-	} m_Ninja;
+		int m_Duration;
+	} m_Freeze;
+
+	// killer, that froze this character
+	struct {
+		int m_KillerID;
+		unsigned int m_uiKillerHookTicks;
+	} m_Killer;
 
 	// the player core for the physics
 	CCharacterCore m_Core;

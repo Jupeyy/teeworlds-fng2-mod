@@ -51,7 +51,7 @@ int CNetConsole::Close()
 int CNetConsole::Drop(int ClientID, const char *pReason)
 {
 	if(m_pfnDelClient)
-		m_pfnDelClient(ClientID, pReason, m_UserPtr);
+		m_pfnDelClient(ClientID, pReason, m_UserPtr, false);
 
 	m_aSlots[ClientID].m_Connection.Disconnect(pReason);
 

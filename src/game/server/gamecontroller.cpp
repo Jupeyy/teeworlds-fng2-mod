@@ -133,12 +133,12 @@ bool IGameController::CanBeMovedOnBalance(int ClientID) const
 	return true;
 }
 
-void IGameController::CheckTeamBalance()
+bool IGameController::CheckTeamBalance()
 {
 	if(!IsTeamplay() || !g_Config.m_SvTeambalanceTime)
 	{
 		m_UnbalancedTick = TBALANCE_OK;
-		return;
+			return true;
 	}
 
 	// check if teams are unbalanced
@@ -148,13 +148,16 @@ void IGameController::CheckTeamBalance()
 		str_format(aBuf, sizeof(aBuf), "Teams are NOT balanced (red=%d blue=%d)", m_aTeamSize[TEAM_RED], m_aTeamSize[TEAM_BLUE]);
 		if(m_UnbalancedTick <= TBALANCE_OK)
 			m_UnbalancedTick = Server()->Tick();
+		GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
+		return false;
 	}
 	else
 	{
 		str_format(aBuf, sizeof(aBuf), "Teams are balanced (red=%d blue=%d)", m_aTeamSize[TEAM_RED], m_aTeamSize[TEAM_BLUE]);
 		m_UnbalancedTick = TBALANCE_OK;
+		GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
+		return true;
 	}
-	GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 }
 
 void IGameController::DoTeamBalance()
@@ -411,6 +414,7 @@ void IGameController::OnReset()
 				GameServer()->m_apPlayers[i]->m_ScoreStartTick = Server()->Tick();
 			}
 			GameServer()->m_apPlayers[i]->m_IsReadyToPlay = true;
+			OnResetPlayer(i);
 		}
 	}
 }
@@ -1140,6 +1144,63 @@ int IGameController::ClampTeam(int Team) const
 	if(IsTeamplay())
 		return Team&1;
 	return TEAM_RED;
+}
+
+void IGameController::ShuffleTeams()
+{
+	srand (time(NULL));
+	int64_t TeamPlayers[2];
+	int64_t TeamPlayersAfterShuffle[2];
+	do
+	{
+		int CounterRed = 0;
+		int CounterBlue = 0;
+		int PlayerTeam = 0;
+		TeamPlayers[0] = 0;
+		TeamPlayers[1] = 0;
+		TeamPlayersAfterShuffle[0] = 0;
+		TeamPlayersAfterShuffle[1] = 0;
+		for(int i = 0; i < MAX_CLIENTS; ++i)
+		{
+			if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS)
+			{
+				++PlayerTeam;
+				TeamPlayers[GameServer()->m_apPlayers[i]->GetTeam()] |= CmaskOne(i);
+			}
+		}
+		PlayerTeam = (PlayerTeam+1)/2;
+
+		for(int i = 0; i < MAX_CLIENTS; ++i)
+		{
+			if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS)
+			{
+				if(CounterRed == PlayerTeam)
+					GameServer()->m_apPlayers[i]->SetTeam(TEAM_BLUE, false);
+				else if(CounterBlue == PlayerTeam)
+					GameServer()->m_apPlayers[i]->SetTeam(TEAM_RED, false);
+				else
+				{	
+					if(rand() % 2)
+					{
+						GameServer()->m_apPlayers[i]->SetTeam(TEAM_BLUE, false);
+						++CounterBlue;
+					}
+					else
+					{
+						GameServer()->m_apPlayers[i]->SetTeam(TEAM_RED, false);
+						++CounterRed;
+					}
+				}
+				
+				TeamPlayersAfterShuffle[GameServer()->m_apPlayers[i]->GetTeam()] |= CmaskOne(i);
+			}
+		}		
+	}
+	while ((CountBits(TeamPlayers[0]) > 1 || CountBits(TeamPlayers[1]) > 1) && (TeamPlayers[0] == TeamPlayersAfterShuffle[0] || TeamPlayers[0] == TeamPlayersAfterShuffle[1]));
+}
+
+bool IGameController::UseFakeTeams(){
+	return false;
 }
 
 void IGameController::DoTeamChange(CPlayer *pPlayer, int Team, bool DoChatMsg)

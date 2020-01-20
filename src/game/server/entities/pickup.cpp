@@ -97,7 +97,7 @@ void CPickup::Tick()
 				{
 					Picked = true;
 					// activate ninja on target player
-					pChr->GiveNinja();
+					//pChr->GiveNinja();
 
 					// loop through all players, setting their emotes
 					CCharacter *pC = static_cast<CCharacter *>(GameWorld()->FindFirst(CGameWorld::ENTTYPE_CHARACTER));

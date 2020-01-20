@@ -6,6 +6,8 @@
 #include <engine/map.h>
 #include <game/mapitems.h>
 
+#include <cstddef>
+
 class CLayers
 {
 	int m_GroupsNum;
