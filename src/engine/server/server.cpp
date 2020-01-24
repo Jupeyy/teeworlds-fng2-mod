@@ -1918,6 +1918,9 @@ int main(int argc, const char **argv) // ignore_convention
 		// parse the command line arguments
 		if(argc > 1) // ignore_convention
 			pConsole->ParseArguments(argc-1, &argv[1]); // ignore_convention
+
+		// execute a second autoexec file, that is after the argument
+		pConsole->ExecuteFile("autoexec_after.cfg");
 	}
 
 	// restore empty config strings to their defaults
