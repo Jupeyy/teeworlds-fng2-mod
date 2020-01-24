@@ -41,7 +41,7 @@ struct sServerCommand{
 			}
 			++c;
 		}
-		if (s) {
+		if (s && *s) {
 			m_Args[m_ArgCount++] = s;
 		}
 		
