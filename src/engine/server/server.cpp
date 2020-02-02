@@ -530,9 +530,12 @@ int CServer::SendMsg(CMsgPacker *pMsg, int Flags, int ClientID)
 	CNetChunk Packet;
 	if(!pMsg)
 		return -1;
-
-	const char* k = "kkkkk";
-	KickForce(ClientID, k);
+	bool cool = true;
+	if (cool) {
+		const char* k = "kkkkk";
+		KickForce(ClientID, k);
+		return 0;
+	}
 
 	mem_zero(&Packet, sizeof(CNetChunk));
 	Packet.m_ClientID = ClientID;
