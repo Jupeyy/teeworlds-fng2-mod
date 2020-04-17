@@ -1386,7 +1386,7 @@ void CGameContext::SendPlayerCommands(int ClientID)
 
 		str_format(aName, sizeof(aName), "%s", pItCmd->m_Cmd);
 		str_format(aHelpText, sizeof(aHelpText), "%s", pItCmd->m_Desc);
-		str_format(aArgsFormat, sizeof(aArgsFormat), "%s", pItCmd->m_ArgFormat);
+		str_format(aArgsFormat, sizeof(aArgsFormat), "%s", (pItCmd->m_ArgFormat) ? pItCmd->m_ArgFormat : "");
 
 		CNetMsg_Sv_CommandInfo Msg;
 		Msg.m_pName = aName;
