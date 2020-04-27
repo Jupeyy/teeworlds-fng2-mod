@@ -55,7 +55,8 @@ int CGameControllerFNG2::OnCharacterDeath(class CCharacter *pVictim, class CPlay
 		}
 		else if(Weapon == WEAPON_SPIKE_RED)
 		{
-			if(pKiller->GetTeam() == TEAM_RED)
+			// solo or team, would get scores
+			if(m_GameFlags != GAMEFLAG_TEAMS || pKiller->GetTeam() == TEAM_RED)
 			{
 				pKiller->m_Stats.m_GrabsTeam++;
 				pVictim->GetPlayer()->m_Stats.m_Deaths++;
@@ -74,7 +75,8 @@ int CGameControllerFNG2::OnCharacterDeath(class CCharacter *pVictim, class CPlay
 		}
 		else if(Weapon == WEAPON_SPIKE_BLUE)
 		{
-			if(pKiller->GetTeam() == TEAM_BLUE)
+			// solo or team, would get scores
+			if(m_GameFlags != GAMEFLAG_TEAMS || pKiller->GetTeam() == TEAM_BLUE)
 			{
 				pKiller->m_Stats.m_GrabsTeam++;
 				pVictim->GetPlayer()->m_Stats.m_Deaths++;
