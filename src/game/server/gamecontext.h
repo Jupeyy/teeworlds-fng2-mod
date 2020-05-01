@@ -13,7 +13,7 @@
 #include "gameworld.h"
 
 extern int CountBits(int64_t Flag);
-extern int PositionOfNonZeroBit(int64_t Mask);
+extern int PositionOfNonZeroBit(int64_t Mask, int64_t Offset);
 
 //str_comp_nocase_whitespace
 //IMPORTANT: the pArgs can not be accessed by null zero termination. they are not splited by 0, but by space... in case a function needs the whole argument at once. use functions above

@@ -35,7 +35,7 @@ enum
 	NO_RESET
 };
 
-extern int CountBits(int64_t Flag)
+int CountBits(int64_t Flag)
 {
 	int RetCount = 0;
 	for(size_t i = 0; i < 64; ++i)
@@ -47,9 +47,9 @@ extern int CountBits(int64_t Flag)
 	return RetCount;
 }
 
-extern int PositionOfNonZeroBit(int64_t Mask)
+int PositionOfNonZeroBit(int64_t Mask, int64_t Offset)
 {
-	for (int64_t n = 0; n < 64; ++n)
+	for (int64_t n = Offset; n < 64; ++n)
 	{
 		if ((Mask & (1ll << n)) != 0)
 		{
@@ -2155,7 +2155,7 @@ void CGameContext::SendRoundStats()
 		char aBuff[300];
 		if(bestKDCount == 1)
 		{
-			str_format(aBuff, 300, "Best player: %s with a K/D of %.3f", Server()->ClientName(PositionOfNonZeroBit(BestKDPlayerIDs)), BestKD);
+			str_format(aBuff, 300, "Best player: %s with a K/D of %.3f", Server()->ClientName(PositionOfNonZeroBit(BestKDPlayerIDs, 0)), BestKD);
 		}
 		else
 		{
@@ -2166,7 +2166,7 @@ void CGameContext::SendRoundStats()
 			char aPlayerNames[300];
 			
 			int CharacterOffset = 0;
-			while((CurPlayerIDOffset = PositionOfNonZeroBit(BestKDPlayerIDs)) != -1)
+			while((CurPlayerIDOffset = PositionOfNonZeroBit(BestKDPlayerIDs, CurPlayerIDOffset + 1)) != -1)
 			{
 				if(CurPlayerCount > 0)
 				{					
@@ -2195,7 +2195,7 @@ void CGameContext::SendRoundStats()
 		char aBuff[300];
 		if (BestAccuracyCount == 1)
 		{
-			str_format(aBuff, 300, "Best accuracy: %s with %3.1f%%", Server()->ClientName(PositionOfNonZeroBit(BestKDPlayerIDs)), BestAccuracy * 100.f);
+			str_format(aBuff, 300, "Best accuracy: %s with %3.1f%%", Server()->ClientName(PositionOfNonZeroBit(BestKDPlayerIDs, 0)), BestAccuracy * 100.f);
 		}
 		else
 		{
@@ -2206,7 +2206,7 @@ void CGameContext::SendRoundStats()
 			char aPlayerNames[300];
 
 			int CharacterOffset = 0;
-			while ((CurPlayerIDOffset = PositionOfNonZeroBit(BestKDPlayerIDs)) != -1)
+			while ((CurPlayerIDOffset = PositionOfNonZeroBit(BestKDPlayerIDs, CurPlayerIDOffset + 1)) != -1)
 			{
 				if (CurPlayerCount > 0)
 				{
