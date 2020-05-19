@@ -56,14 +56,9 @@ int CNetServer::Close()
 
 int CNetServer::Drop(int ClientID, const char *pReason, bool ForceDisconnect)
 {
-	// TODO: insert lots of checks here
-	/*NETADDR Addr = ClientAddr(ClientID);
+	if(ClientID < 0 || ClientID >= NET_MAX_CLIENTS || m_aSlots[ClientID].m_Connection.State() == NET_CONNSTATE_OFFLINE)
+		return 0;
 
-	dbg_msg("net_server", "client dropped. cid=%d ip=%d.%d.%d.%d reason=\"%s\"",
-		ClientID,
-		Addr.ip[0], Addr.ip[1], Addr.ip[2], Addr.ip[3],
-		pReason
-		);*/
 	int Error = 0;
 
 	if(m_pfnDelClient)

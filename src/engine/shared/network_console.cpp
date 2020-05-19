@@ -50,6 +50,9 @@ int CNetConsole::Close()
 
 int CNetConsole::Drop(int ClientID, const char *pReason)
 {
+	if(ClientID < 0 || ClientID >= NET_MAX_CONSOLE_CLIENTS || m_aSlots[ClientID].m_Connection.State() == NET_CONNSTATE_OFFLINE)
+		return 0;
+
 	if(m_pfnDelClient)
 		m_pfnDelClient(ClientID, pReason, m_UserPtr, false);
 
