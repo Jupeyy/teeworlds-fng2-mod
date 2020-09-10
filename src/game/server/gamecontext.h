@@ -12,6 +12,8 @@
 #include "eventhandler.h"
 #include "gameworld.h"
 
+#include <stdint.h>
+
 extern int CountBits(int64_t Flag);
 extern int PositionOfNonZeroBit(int64_t Mask, int64_t Offset);
 
