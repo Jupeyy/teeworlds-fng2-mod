@@ -272,6 +272,8 @@ void CCharacter::FireWeapon()
 
 	vec2 ProjStartPos = m_Pos+Direction*m_ProximityRadius*0.75f;
 
+	int WeaponFireDelay = g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Firedelay * Server()->TickSpeed() / 1000;
+
 	switch(m_ActiveWeapon)
 	{
 		case WEAPON_HAMMER:
@@ -351,6 +353,7 @@ void CCharacter::FireWeapon()
 				1, true, 0, SOUND_GRENADE_EXPLODE, WEAPON_GRENADE);
 
 			GameServer()->CreateSound(m_Pos, SOUND_GRENADE_FIRE);
+			//WeaponFireDelay = GameServer()->Tuning()->m_GrenadeFireDelay * Server()->TickSpeed() / 1000;
 		} break;
 
 		case WEAPON_RIFLE:
@@ -358,6 +361,7 @@ void CCharacter::FireWeapon()
 			++m_pPlayer->m_Stats.m_Shots;
 			new CLaser(GameWorld(), m_Pos, Direction, GameServer()->Tuning()->m_LaserReach, m_pPlayer->GetCID());
 			GameServer()->CreateSound(m_Pos, SOUND_RIFLE_FIRE);
+			//WeaponFireDelay = GameServer()->Tuning()->m_LaserFireDelay * Server()->TickSpeed() / 1000;
 		} break;
 
 		case WEAPON_NINJA:
@@ -372,7 +376,7 @@ void CCharacter::FireWeapon()
 		m_aWeapons[m_ActiveWeapon].m_Ammo--;
 
 	if(!m_ReloadTimer)
-		m_ReloadTimer = g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Firedelay * Server()->TickSpeed() / 1000;
+		m_ReloadTimer = WeaponFireDelay;
 }
 
 void CCharacter::HandleWeapons()

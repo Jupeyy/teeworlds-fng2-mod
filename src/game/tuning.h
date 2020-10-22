@@ -45,4 +45,7 @@ MACRO_TUNING_PARAM(LaserDamage, laser_damage, 5)
 
 MACRO_TUNING_PARAM(PlayerCollision, player_collision, 1)
 MACRO_TUNING_PARAM(PlayerHooking, player_hooking, 1)
+
+//MACRO_TUNING_PARAM(GrenadeFireDelay, grenade_fire_delay, 500)
+//MACRO_TUNING_PARAM(LaserFireDelay, laser_fire_delay, 800)
 #endif

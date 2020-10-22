@@ -20,9 +20,9 @@ config:Finalize("config.lua")
 -- data compiler
 function Script(name)
 	if family == "windows" then
-		return  "python " .. str_replace(name, "/", "\\")
+		return  "python3 " .. str_replace(name, "/", "\\")
 	end
-	return "python " .. name
+	return "python3 " .. name
 end
 
 function CHash(output, ...)
