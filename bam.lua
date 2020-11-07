@@ -154,11 +154,15 @@ function build(settings)
 		settings.link.libs:Add("Advapi32")
 	else
 		settings.cc.flags:Add("-std=c++11")
+		--settings.cc.flags:Add("-fsanitize=undefined,address")
+		--settings.cc.flags:Add("-v")
 		settings.cc.flags:Add("-Wall", "-fno-exceptions")
 		settings.cc.flags:Add("-Wno-sign-compare")
 		settings.cc.flags:Add("-Wno-enum-compare")
 		settings.cc.flags:Add("-Wno-unused-variable")
 		--settings.link.libs:Add("mysqlclient")
+		--settings.link.libs:Add("asan")
+		--settings.link.libs:Add("ubsan")
 		if family == "windows" then
 			-- disable visibility attribute support for gcc on windows
 			settings.cc.defines:Add("NO_VIZ")
