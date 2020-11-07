@@ -162,56 +162,13 @@ static const int MEM_GUARD_VAL = 0xbaadc0de;
 
 void *mem_alloc_debug(const char *filename, int line, unsigned size, unsigned alignment)
 {
-	/* TODO: fix alignment */
-	/* TODO: add debugging */
-	MEMTAIL *tail;
-	MEMHEADER *header = (struct MEMHEADER *)malloc(size+sizeof(MEMHEADER)+sizeof(MEMTAIL));
-	dbg_assert(header != 0, "mem_alloc failure");
-	if(!header)
-		return NULL;
-	tail = (struct MEMTAIL *)(((char*)(header+1))+size);
-	header->size = size;
-	header->filename = filename;
-	header->line = line;
-
-	memory_stats.allocated += header->size;
-	memory_stats.total_allocations++;
-	memory_stats.active_allocations++;
-
-	tail->guard = MEM_GUARD_VAL;
-
-	header->prev = (MEMHEADER *)0;
-	header->next = first;
-	if(first)
-		first->prev = header;
-	first = header;
-
-	/*dbg_msg("mem", "++ %p", header+1); */
-	return header+1;
+	return malloc(size);
 }
 
 void mem_free(void *p)
 {
 	if(p)
-	{
-		MEMHEADER *header = (MEMHEADER *)p - 1;
-		MEMTAIL *tail = (MEMTAIL *)(((char*)(header+1))+header->size);
-
-		if(tail->guard != MEM_GUARD_VAL)
-			dbg_msg("mem", "!! %p", p);
-		/* dbg_msg("mem", "-- %p", p); */
-		memory_stats.allocated -= header->size;
-		memory_stats.active_allocations--;
-
-		if(header->prev)
-			header->prev->next = header->next;
-		else
-			first = header->next;
-		if(header->next)
-			header->next->prev = header->prev;
-
-		free(header);
-	}
+		free(p);
 }
 
 void mem_debug_dump(IOHANDLE file)

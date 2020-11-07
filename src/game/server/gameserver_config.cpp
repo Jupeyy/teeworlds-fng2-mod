@@ -5,15 +5,15 @@
 #include <base/math.h>
 #include <base/system.h>
 
-#include <engine/storage.h>
-#include <engine/shared/protocol.h>
 #include <engine/shared/config.h>
 #include <engine/shared/linereader.h>
+#include <engine/shared/protocol.h>
+#include <engine/storage.h>
 
 #include "gameserver_config.h"
 
-#include <iostream>
 #include <cstring>
+#include <iostream>
 
 #pragma pack(push, 1)
 struct CIntVarData
@@ -30,8 +30,8 @@ struct CStrVarData
 	int reserved;
 };
 
-
-union CStrIntVarData{
+union CStrIntVarData
+{
 	CIntVarData data;
 	CStrVarData datastr;
 };
@@ -40,7 +40,7 @@ union CStrIntVarData{
 enum
 {
 	CONSOLE_MAX_STR_LENGTH = 1024,
-	MAX_PARTS = (CONSOLE_MAX_STR_LENGTH+1)/2
+	MAX_PARTS = (CONSOLE_MAX_STR_LENGTH + 1) / 2
 };
 
 class CConfigCommand
@@ -48,16 +48,15 @@ class CConfigCommand
 public:
 	CConfigCommand *m_pNext;
 	int m_Flags;
-	const char* m_pName;
+	const char *m_pName;
 	IConsole::FCommandCallback m_pfnCallback;
 	CStrIntVarData m_pUserData;
 };
 
-
 class CResult : public IConsole::IResult
 {
 public:
-	char m_aStringStorage[CONSOLE_MAX_STR_LENGTH+1];
+	char m_aStringStorage[CONSOLE_MAX_STR_LENGTH + 1];
 	char *m_pArgsStart;
 
 	const char *m_pCommand;
@@ -71,24 +70,21 @@ public:
 		mem_zero(m_apArgs, sizeof(m_apArgs));
 	}
 
-	CResult &operator =(const CResult &Other)
+	CResult &operator=(const CResult &Other)
 	{
 		if(this != &Other)
 		{
 			IConsole::IResult::operator=(Other);
 			mem_copy(m_aStringStorage, Other.m_aStringStorage, sizeof(m_aStringStorage));
-			m_pArgsStart = m_aStringStorage+(Other.m_pArgsStart-Other.m_aStringStorage);
-			m_pCommand = m_aStringStorage+(Other.m_pCommand-Other.m_aStringStorage);
+			m_pArgsStart = m_aStringStorage + (Other.m_pArgsStart - Other.m_aStringStorage);
+			m_pCommand = m_aStringStorage + (Other.m_pCommand - Other.m_aStringStorage);
 			for(unsigned i = 0; i < Other.m_NumArgs; ++i)
-				m_apArgs[i] = m_aStringStorage+(Other.m_apArgs[i]-Other.m_aStringStorage);
+				m_apArgs[i] = m_aStringStorage + (Other.m_apArgs[i] - Other.m_aStringStorage);
 		}
 		return *this;
 	}
 
-	void AddArgument(const char *pArg)
-	{
-		m_apArgs[m_NumArgs++] = pArg;
-	}
+	void AddArgument(const char *pArg) { m_apArgs[m_NumArgs++] = pArg; }
 
 	virtual const char *GetString(unsigned Index);
 	virtual int GetInteger(unsigned Index);
@@ -97,28 +93,26 @@ public:
 
 const char *CResult::GetString(unsigned Index)
 {
-	if (Index >= m_NumArgs)
+	if(Index >= m_NumArgs)
 		return "";
 	return m_apArgs[Index];
 }
 
 int CResult::GetInteger(unsigned Index)
 {
-	if (Index >= m_NumArgs)
+	if(Index >= m_NumArgs)
 		return 0;
 	return str_toint(m_apArgs[Index]);
 }
 
 float CResult::GetFloat(unsigned Index)
 {
-	if (Index >= m_NumArgs)
+	if(Index >= m_NumArgs)
 		return 0.0f;
 	return str_tofloat(m_apArgs[Index]);
 }
 
-void CGameServerConfig::ToConfigObject(struct CConfiguration*& pConfig){
-	pConfig = &m_Config;
-}
+void CGameServerConfig::ToConfigObject(struct CConfiguration *&pConfig) { pConfig = &m_Config; }
 
 int CGameServerConfig::ParseStart(CResult *pResult, const char *pString, int Length)
 {
@@ -194,7 +188,6 @@ int CGameServerConfig::ParseArgs(CResult *pResult)
 			// write null termination
 			*pDst = 0;
 
-
 			pStr++;
 		}
 		else
@@ -211,7 +204,7 @@ CConfigCommand *CGameServerConfig::FindCommand(const char *pName, int FlagMask)
 {
 	for(CConfigCommand *pCommand = m_pFirstCommand; pCommand; pCommand = pCommand->m_pNext)
 	{
-		if(pCommand->m_Flags&FlagMask)
+		if(pCommand->m_Flags & FlagMask)
 		{
 			if(str_comp_nocase(pCommand->m_pName, pName) == 0)
 				return pCommand;
@@ -243,7 +236,7 @@ void CGameServerConfig::ExecuteLine(const char *pStr)
 			{
 				if(*pEnd == ';') // command separator
 				{
-					pNextPart = pEnd+1;
+					pNextPart = pEnd + 1;
 					break;
 				}
 				else if(*pEnd == '#') // comment, no need to do anything more
@@ -253,7 +246,7 @@ void CGameServerConfig::ExecuteLine(const char *pStr)
 			pEnd++;
 		}
 
-		if(ParseStart(&Result, pStr, (pEnd-pStr) + 1) != 0)
+		if(ParseStart(&Result, pStr, (pEnd - pStr) + 1) != 0)
 			return;
 
 		if(!*Result.m_pCommand)
@@ -266,19 +259,20 @@ void CGameServerConfig::ExecuteLine(const char *pStr)
 			if(ParseArgs(&Result))
 			{
 				return;
-			} else
-			pCommand->m_pfnCallback((IConsole::IResult*) &Result, &pCommand->m_pUserData);		
+			}
+			else
+				pCommand->m_pfnCallback((IConsole::IResult *)&Result, &pCommand->m_pUserData);
 		}
 		else
 		{
-				return;
+			return;
 		}
 
 		pStr = pNextPart;
 	}
 }
 
-void CGameServerConfig::ExecuteFile(const char *pFilename, IKernel* pKernel)
+void CGameServerConfig::ExecuteFile(const char *pFilename, IKernel *pKernel)
 {
 	if(!m_pStorage)
 		m_pStorage = pKernel->RequestInterface<IStorage>();
@@ -317,9 +311,9 @@ static void IntVariableCommand(IConsole::IResult *pResult, void *pUserData)
 		// do clamping
 		if(pData->m_Min != pData->m_Max)
 		{
-			if (Val < pData->m_Min)
+			if(Val < pData->m_Min)
 				Val = pData->m_Min;
-			if (pData->m_Max != 0 && Val > pData->m_Max)
+			if(pData->m_Max != 0 && Val > pData->m_Max)
 				Val = pData->m_Max;
 		}
 
@@ -345,9 +339,9 @@ static void StrVariableCommand(IConsole::IResult *pResult, void *pUserData)
 			while(*pString)
 			{
 				int Size = str_utf8_encode(Temp, static_cast<const unsigned char>(*pString++));
-				if(Length+Size < pData->m_MaxSize)
+				if(Length + Size < pData->m_MaxSize)
 				{
-					mem_copy(pData->m_pStr+Length, &Temp, Size);
+					mem_copy(pData->m_pStr + Length, &Temp, Size);
 					Length += Size;
 				}
 				else
@@ -369,24 +363,24 @@ CGameServerConfig::CGameServerConfig()
 	m_pFirstCommand = NULL;
 	m_pStorage = NULL;
 
-	#define MACRO_CONFIG_INT(Name,ScriptName,Def,Min,Max,Flags,Desc) \
+#define MACRO_CONFIG_INT(Name, ScriptName, Def, Min, Max, Flags, Desc) \
 	{ \
-		CIntVarData Data = { &m_Config.m_##Name, Min, Max }; \
+		CIntVarData Data = {&m_Config.m_##Name, Min, Max}; \
 		m_Config.m_##Name = Def; \
 		Register(#ScriptName, Flags, IntVariableCommand, &Data); \
 	}
 
-	#define MACRO_CONFIG_STR(Name,ScriptName,Len,Def,Flags,Desc) \
+#define MACRO_CONFIG_STR(Name, ScriptName, Len, Def, Flags, Desc) \
 	{ \
-		CStrVarData Data = { m_Config.m_##Name, Len }; \
-		memcpy(m_Config.m_##Name, Def, Len);\
+		CStrVarData Data = {m_Config.m_##Name, Len}; \
+		str_copy(m_Config.m_##Name, Def, Len); \
 		Register(#ScriptName, Flags, StrVariableCommand, &Data); \
 	}
 
-	#include <engine/shared/config_variables.h>
+#include <engine/shared/config_variables.h>
 
-	#undef MACRO_CONFIG_INT
-	#undef MACRO_CONFIG_STR
+#undef MACRO_CONFIG_INT
+#undef MACRO_CONFIG_STR
 }
 
 void CGameServerConfig::AddCommandSorted(CConfigCommand *pCommand)
@@ -419,11 +413,11 @@ void CGameServerConfig::Register(const char *pName, int Flags, IConsole::FComman
 	bool DoAdd = false;
 	if(pCommand == 0)
 	{
-		pCommand = new(mem_alloc(sizeof(CConfigCommand), sizeof(void*))) CConfigCommand;
+		pCommand = new(mem_alloc(sizeof(CConfigCommand), sizeof(void *))) CConfigCommand;
 		DoAdd = true;
 	}
 	pCommand->m_pfnCallback = pfnFunc;
-	pCommand->m_pUserData = *((CStrIntVarData*)pUser);
+	pCommand->m_pUserData = *((CStrIntVarData *)pUser);
 
 	pCommand->m_pName = pName;
 
