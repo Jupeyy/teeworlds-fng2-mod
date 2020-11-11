@@ -1539,7 +1539,7 @@ void CGameContext::ConSetTeam(IConsole::IResult *pResult, void *pUserData)
 void CGameContext::ConSetTeamAll(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;
-	int Team = pSelf->m_pController->ClampTeam(pResult->GetInteger(1));
+	int Team = pSelf->m_pController->ClampTeam(pResult->GetInteger(0));
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "All players were moved to the %s", pSelf->m_pController->GetTeamName(Team));
