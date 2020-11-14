@@ -33,13 +33,17 @@ void *CHeap::AllocateFromChunk(unsigned int Size)
 {
 	char *pMem;
 
+	unsigned Alignment = alignof(char*);
+	unsigned RequestSizeAlignOffset = Size % Alignment;
+	unsigned RequestSizePlusAlignment = Size + ((RequestSizeAlignOffset > 0) ? (Alignment - RequestSizeAlignOffset) : 0);
+
 	// check if we need can fit the allocation
-	if(m_pCurrent->m_pCurrent + Size > m_pCurrent->m_pEnd)
+	if(m_pCurrent->m_pCurrent + RequestSizePlusAlignment > m_pCurrent->m_pEnd)
 		return (void*)0x0;
 
 	// get memory and move the pointer forward
 	pMem = m_pCurrent->m_pCurrent;
-	m_pCurrent->m_pCurrent += Size;
+	m_pCurrent->m_pCurrent += RequestSizePlusAlignment;
 	return pMem;
 }
 

@@ -40,7 +40,7 @@ public:
 	int GetItemSize(int Index);
 	int GetItemIndex(int Key);
 
-	int Crc();
+	unsigned int Crc();
 	void DebugDump();
 };
 

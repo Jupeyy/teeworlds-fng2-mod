@@ -28,9 +28,9 @@ int CSnapshot::GetItemIndex(int Key)
 	return -1;
 }
 
-int CSnapshot::Crc()
+unsigned int CSnapshot::Crc()
 {
-	int Crc = 0;
+	unsigned int Crc = 0;
 
 	for(int i = 0; i < m_NumItems; i++)
 	{
