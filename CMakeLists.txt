@@ -490,16 +490,6 @@ foreach(datafile ${DATA})
   file(MAKE_DIRECTORY ${DESTINATION})
   file(COPY ${datafile} DESTINATION ${DESTINATION})
 endforeach()
-set(COPY_FILES
-  ${CURL_COPY_FILES}
-  ${FREETYPE_COPY_FILES}
-  ${OPUSFILE_COPY_FILES}
-  ${SDL2_COPY_FILES}
-  ${SQLite3_COPY_FILES}
-  ${FFMPEG_COPY_FILES}
-  ${WEBSOCKETS_COPY_FILES}
-)
-file(COPY ${COPY_FILES} DESTINATION .)
 
 ########################################################################
 # CODE GENERATION

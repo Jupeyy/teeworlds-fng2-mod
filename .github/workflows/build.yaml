@@ -44,15 +44,15 @@ jobs:
         ${{ matrix.cmake-path }}cmake ${{ matrix.cmake-args }} -DCMAKE_BUILD_TYPE=Release -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=. ..
         ${{ matrix.cmake-path }}cmake --build . --config Release ${{ matrix.build-args }} --target fng2_srv
 
-#    - name: Package
-#      run: |
-#        cd release
-#        ${{ matrix.cmake-path }}cmake --build . --config Release ${{ matrix.build-args }} --target package_default
-#        mkdir artifacts
-#        mv ${{ matrix.package-file }} artifacts
+    - name: Package
+      run: |
+        cd release
+        ${{ matrix.cmake-path }}cmake --build . --config Release ${{ matrix.build-args }} --target package_default
+        mkdir artifacts
+        mv ${{ matrix.package-file }} artifacts
 
-#    - name: Upload Artifacts
-#      uses: actions/upload-artifact@v1
-#      with:
-#        name: ddnet-${{ matrix.os }}
-#        path: release/artifacts
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: fng-${{ matrix.os }}
+        path: release/artifacts
