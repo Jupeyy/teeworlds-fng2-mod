@@ -439,59 +439,6 @@ if(NOT CRYPTO_FOUND)
 endif()
 
 ########################################################################
-# DATA
-########################################################################
-
-set(EXPECTED_DATA
-  maps/4TeamsFNG_random.map
-  maps/4TeamsFNG.map
-  maps/AliveFNG.map
-  maps/IIT_Edited.map
-  maps/openfng5Beat.map
-  mapres/desert_mountains.png
-  mapres/winter_doodads.png
-  mapres/moon.png
-  mapres/mountains.png
-  mapres/grass_main.png
-  mapres/jungle_doodads.png
-  mapres/stars.png
-  mapres/desert_main.png
-  mapres/winter_mountains3.png
-  mapres/winter_mountains.png
-  mapres/generic_unhookable.png
-  mapres/winter_main.png
-  mapres/jungle_deathtiles.png
-  mapres/jungle_background.png
-  mapres/bg_cloud3.png
-  mapres/desert_doodads.png
-  mapres/sun.png
-  mapres/jungle_main.png
-  mapres/bg_cloud2.png
-  mapres/winter_mountains2.png
-  mapres/jungle_midground.png
-  mapres/desert_mountains2.png
-  mapres/snow.png
-  mapres/jungle_unhookables.png
-  mapres/desert_sun.png
-  mapres/bg_cloud1.png
-  mapres/grass_doodads.png
-  mapres/generic_deathtiles.png
-)
-
-set_glob(DATA GLOB_RECURSE "png;map" data ${EXPECTED_DATA})
-
-########################################################################
-# COPY DATA AND DLLS
-########################################################################
-
-foreach(datafile ${DATA})
-  file(RELATIVE_PATH OUT ${PROJECT_SOURCE_DIR}/data ${datafile})
-  get_filename_component(DESTINATION data/${OUT} PATH)
-  file(MAKE_DIRECTORY ${DESTINATION})
-  file(COPY ${datafile} DESTINATION ${DESTINATION})
-endforeach()
-
-########################################################################
 # CODE GENERATION
 ########################################################################
 
@@ -900,7 +847,7 @@ set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME ${PROJECT_NAME})
 set(CPACK_TARGETS
   ${TARGET_SERVER}
 )
-set(CPACK_DIRS ${PROJECT_BINARY_DIR}/data)
+set(CPACK_DIRS data)
 set(CPACK_FILES
   fng.cfg
   license.txt
@@ -947,7 +894,7 @@ foreach(ext zip tar.gz tar.xz)
   endforeach()
   foreach(dir ${CPACK_DIRS})
     get_filename_component(NAME ${dir} NAME)
-    list(APPEND COPY_DIR_COMMANDS COMMAND ${CMAKE_COMMAND} -E copy_directory ${dir} ${TMPDIR}/${NAME})
+    list(APPEND COPY_DIR_COMMANDS COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/${dir} ${TMPDIR}/${NAME})
   endforeach()
   foreach(target ${CPACK_TARGETS})
     list(APPEND COPY_TARGET_COMMANDS COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${target}> ${TMPDIR}/)
