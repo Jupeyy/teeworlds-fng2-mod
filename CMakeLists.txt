@@ -902,12 +902,15 @@ set(CPACK_TARGETS
 )
 set(CPACK_DIRS ${PROJECT_BINARY_DIR}/data)
 set(CPACK_FILES
+  fng.cfg
   license.txt
   storage.cfg
-  ${COPY_FILES}
 )
 if(TARGET_OS STREQUAL "windows")
   list(APPEND CPACK_FILES other/config_directory.bat)
+endif()
+if(UNIX)
+  list(APPEND CPACK_FILES start.sh)
 endif()
 
 if(NOT DEV)
