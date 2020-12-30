@@ -20,11 +20,9 @@ jobs:
           cmake-args: -G "Unix Makefiles"
           build-args: --parallel
           package-file: fng-*-linux_x86_64.tar.xz
-          fancy: true
         - os: windows-latest
           cmake-args: -G "Visual Studio 16 2019" -A x64
           package-file: fng-*-win64.zip
-          fancy: false
 
     steps:
     - uses: actions/checkout@v2
@@ -52,7 +50,7 @@ jobs:
         mv ${{ matrix.package-file }} artifacts
 
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
         name: fng-${{ matrix.os }}
         path: release/artifacts
