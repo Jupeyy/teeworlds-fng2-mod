@@ -468,7 +468,7 @@ function(generate_source output_file script_parameter)
   )
 endfunction()
 
-file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/src/generated/")
+file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/src/game/generated/")
 if(GIT_FOUND)
   execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --git-dir
     ERROR_QUIET
@@ -483,16 +483,16 @@ if(GIT_FOUND)
     )
   endif()
 endif()
-chash("src/generated/nethash.cpp"
+chash("src/game/generated/nethash.cpp"
   "src/engine/shared/protocol.h"
   "src/game/tuning.h"
   "src/game/gamecore.cpp"
-  "${PROJECT_BINARY_DIR}/src/generated/protocol.h"
+  "${PROJECT_BINARY_DIR}/src/game/generated/protocol.h"
 )
-generate_source("src/generated/protocol.cpp" "network_source")
-generate_source("src/generated/protocol.h" "network_header")
-generate_source("src/generated/server_data.cpp" "server_content_source")
-generate_source("src/generated/server_data.h" "server_content_header")
+generate_source("src/game/generated/protocol.cpp" "network_source")
+generate_source("src/game/generated/protocol.h" "network_header")
+generate_source("src/game/generated/server_data.cpp" "server_content_source")
+generate_source("src/game/generated/server_data.h" "server_content_header")
 
 
 ########################################################################
@@ -583,7 +583,7 @@ set_src(ENGINE_SHARED GLOB src/engine/shared
   snapshot.h
   storage.cpp
 )
-set(ENGINE_GENERATED_SHARED src/generated/nethash.cpp src/generated/protocol.cpp src/generated/protocol.h)
+set(ENGINE_GENERATED_SHARED src/game/generated/nethash.cpp src/game/generated/protocol.cpp src/game/generated/protocol.h)
 set_src(GAME_SHARED GLOB src/game
   collision.cpp
   collision.h
@@ -599,8 +599,8 @@ set_src(GAME_SHARED GLOB src/game
   voting.h
 )
 set(GAME_GENERATED_SHARED
-  src/generated/nethash.cpp
-  src/generated/protocol.h
+  src/game/generated/nethash.cpp
+  src/game/generated/protocol.h
 )
 
 set(DEPS ${DEP_MD5} ${ZLIB_DEP})
@@ -664,8 +664,8 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   player.h
 )
 set(GAME_GENERATED_SERVER
-  src/generated/server_data.cpp
-  src/generated/server_data.h
+  src/game/generated/server_data.cpp
+  src/game/generated/server_data.h
 )
 set(SERVER_SRC ${ENGINE_SERVER} ${GAME_SERVER} ${GAME_GENERATED_SERVER})
 if(TARGET_OS STREQUAL "windows")
@@ -705,7 +705,7 @@ endif()
 
 set_src(MASTERSRV_SRC GLOB src/mastersrv mastersrv.cpp mastersrv.h)
 set_src(VERSIONSRV_SRC GLOB src/versionsrv mapversions.h versionsrv.cpp versionsrv.h)
-list(APPEND VERSIONSRV_SRC ${PROJECT_BINARY_DIR}/src/generated/nethash.cpp)
+list(APPEND VERSIONSRV_SRC ${PROJECT_BINARY_DIR}/src/game/generated/nethash.cpp)
 
 set(TARGET_MASTERSRV mastersrv)
 set(TARGET_VERSIONSRV versionsrv)
