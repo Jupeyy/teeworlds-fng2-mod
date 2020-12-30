@@ -1,0 +1,58 @@
+name: Build
+
+on:
+  push:
+    branches-ignore:
+      - staging.tmp
+      - trying.tmp
+      - staging-squash-merge.tmp
+  pull_request:
+
+jobs:
+  build-cmake:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        include:
+        - os: ubuntu-latest
+          cmake-args: -G "Unix Makefiles"
+          build-args: --parallel
+          package-file: fng-*-linux_x86_64.tar.xz
+          fancy: true
+        - os: windows-latest
+          cmake-args: -G "Visual Studio 16 2019" -A x64
+          package-file: fng-*-win64.zip
+          fancy: false
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+
+    - name: Prepare Linux
+      if: contains(matrix.os, 'ubuntu')
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install pkg-config cmake -y
+
+    - name: Build in release mode
+      run: |
+        mkdir release
+        cd release
+        ${{ matrix.cmake-path }}cmake ${{ matrix.cmake-args }} -DCMAKE_BUILD_TYPE=Release -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=. ..
+        ${{ matrix.cmake-path }}cmake --build . --config Release ${{ matrix.build-args }} --target fng2_srv
+
+#    - name: Package
+#      run: |
+#        cd release
+#        ${{ matrix.cmake-path }}cmake --build . --config Release ${{ matrix.build-args }} --target package_default
+#        mkdir artifacts
+#        mv ${{ matrix.package-file }} artifacts
+
+#    - name: Upload Artifacts
+#      uses: actions/upload-artifact@v1
+#      with:
+#        name: ddnet-${{ matrix.os }}
+#        path: release/artifacts

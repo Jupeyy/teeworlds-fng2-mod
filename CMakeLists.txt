@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.10)
 
 file(STRINGS src/game/version.h VERSION_LINE
   LIMIT_COUNT 1
@@ -15,10 +15,6 @@ elseif(VERSION_LINE MATCHES "\"([0-9]+)\\.([0-9]+)\"")
   set(VERSION_PATCH "0")
 else()
   message(FATAL_ERROR "Couldn't parse version from src/game/version.h")
-endif()
-
-if(POLICY CMP0072)
-  cmake_policy(SET CMP0072 OLD)
 endif()
 
 if(POLICY CMP0091)
