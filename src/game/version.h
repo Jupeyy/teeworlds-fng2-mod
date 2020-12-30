@@ -2,7 +2,7 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_VERSION_H
 #define GAME_VERSION_H
-#include "generated/nethash.cpp"
+#include "game/generated/nethash.cpp"
 #define GAME_VERSION "0.6.5 fng2 1.10"
 #define GAME_VERSION_PLUS "0.6.5 fng2+ 1.10"
 #define GAME_NETVERSION "0.6 " GAME_NETVERSION_HASH
