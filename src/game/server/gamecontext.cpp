@@ -1750,7 +1750,7 @@ void CGameContext::ConForceVote(IConsole::IResult *pResult, void *pUserData)
 		int KickID = str_toint(pValue);
 		if(KickID < 0 || KickID >= MAX_CLIENTS || !pSelf->m_apPlayers[KickID])
 		{
-			pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "Invalid client id to kick");
+			//pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "Invalid client id to kick");
 			return;
 		}
 

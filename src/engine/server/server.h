@@ -113,7 +113,7 @@ public:
 
 		// connection state info
 		int m_State;
-		int m_Latency;
+		int m_Latency = 0;
 		int m_SnapRate;
 
 		//netlimi
