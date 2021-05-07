@@ -1,4 +1,4 @@
-/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
+﻿/* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <base/math.h>
 
@@ -1459,9 +1459,9 @@ void CGameContext::CmdStats(CGameContext* pContext, int pClientID, const char** 
 {
 	CPlayer* p = pContext->m_apPlayers[pClientID];
 	
-	char aBuff[600];
+	char aBuff[900];
 
-	str_format(aBuff, 600, "╔════════ Statistics ════════\n"
+	str_format(aBuff, 900, "╔════════ Statistics ════════\n"
 		"║\n"
 		"║Kills(weapon): %d\n"
 		"║Hits(By opponent's weapon): %d\n"
