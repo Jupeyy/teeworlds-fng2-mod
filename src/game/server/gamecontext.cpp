@@ -1263,9 +1263,9 @@ void CGameContext::ExecuteServerCommand(int pClientID, const char* pLine){
 void CGameContext::CmdStats(CGameContext* pContext, int pClientID, const char** pArgs, int ArgNum){
 	CPlayer* p = pContext->m_apPlayers[pClientID];
 	
-	char buff[600];
+	char buff[900];
 
-	str_format(buff, 600, "╔═════════ Statistics ═════════\n"
+	str_format(buff, 900, "╔═════════ Statistics ═════════\n"
 		"║\n"
 		"║Kills(weapon): %d\n"
 		"║Hits(By opponent's weapon): %d\n"
