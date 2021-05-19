@@ -21,6 +21,8 @@ public:
 		y = ny;
 	}
 
+	vector2_base(const vector2_base&) = default;
+
 	vector2_base operator -() const { return vector2_base(-x, -y); }
 	vector2_base operator -(const vector2_base &v) const { return vector2_base(x-v.x, y-v.y); }
 	vector2_base operator +(const vector2_base &v) const { return vector2_base(x+v.x, y+v.y); }

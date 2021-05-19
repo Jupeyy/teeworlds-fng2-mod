@@ -71,6 +71,8 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_LastWeapon = WEAPON_HAMMER;
 	m_QueuedWeapon = -1;
 
+	m_LastHookedPlayer = -1;
+
 	m_pPlayer = pPlayer;
 	m_Pos = Pos;
 
@@ -524,7 +526,7 @@ void CCharacter::ResetInput()
 	m_LatestPrevInput = m_LatestInput = m_Input;
 }
 
-void CCharacter::Tick()
+void CCharacter::PreTick()
 {
 	if (m_InvincibleTick > 0) 
 		--m_InvincibleTick;
@@ -539,10 +541,15 @@ void CCharacter::Tick()
 	}
 
 	//before the core update to know if we hooked somebody before it.
-	int iHookedPlayer = m_Core.m_HookedPlayer;
+	m_LastHookedPlayer = m_Core.m_HookedPlayer;
 
 	m_Core.m_Input = m_Input;
 	m_Core.Tick(true);
+}
+
+void CCharacter::Tick()
+{
+	m_Core.TickDeferred();
 
 	if (!m_Alive)
 		return;
@@ -575,8 +582,8 @@ void CCharacter::Tick()
 	// Previnput
 	m_PrevInput = m_Input;
 
-	if (iHookedPlayer != -1 && g_Config.m_SvKillTakeOverTime != -1) {
-		CPlayer *pPlayer = GameServer()->m_apPlayers[iHookedPlayer];
+	if (m_LastHookedPlayer != -1 && g_Config.m_SvKillTakeOverTime != -1) {
+		CPlayer *pPlayer = GameServer()->m_apPlayers[m_LastHookedPlayer];
 		if (pPlayer) {
 			//if the hooker is not in the team of the hooked player, we check how long "we" hooked the hooked player already
 			if (pPlayer->GetTeam() != m_pPlayer->GetTeam() || !GameServer()->m_pController->IsTeamplay()) {
@@ -598,7 +605,7 @@ void CCharacter::Tick()
 				CCharacter* pChr = pPlayer->GetCharacter();
 				if (pChr) {
 					pChr->m_Killer.m_uiKillerHookTicks = 0;
-					pChr->m_Killer.m_KillerID = iHookedPlayer;
+					pChr->m_Killer.m_KillerID = m_LastHookedPlayer;
 				}
 			}
 		}
@@ -613,6 +620,7 @@ void CCharacter::TickDefered()
 		CWorldCore TempWorld;
 		m_ReckoningCore.Init(&TempWorld, GameServer()->Collision());
 		m_ReckoningCore.Tick(false);
+		m_ReckoningCore.TickDeferred();
 		m_ReckoningCore.Move();
 		m_ReckoningCore.Quantize();
 	}

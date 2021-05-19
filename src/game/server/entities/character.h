@@ -28,6 +28,7 @@ public:
 
 	virtual void Reset();
 	virtual void Destroy();
+	virtual void PreTick();
 	virtual void Tick();
 	virtual void TickDefered();
 	virtual void TickPaused();
@@ -83,6 +84,8 @@ private:
 	class CPlayer *m_pPlayer;
 
 	bool m_Alive;
+
+	int m_LastHookedPlayer;
 
 	// weapon info
 	CEntity *m_apHitObjects[10];

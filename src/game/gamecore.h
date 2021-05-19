@@ -208,6 +208,7 @@ public:
 	void Init(CWorldCore *pWorld, CCollision *pCollision);
 	void Reset();
 	void Tick(bool UseInput);
+	void TickDeferred();
 	void Move();
 
 	void Read(const CNetObj_CharacterCore *pObjCore);
