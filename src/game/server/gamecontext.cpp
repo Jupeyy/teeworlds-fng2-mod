@@ -1598,7 +1598,7 @@ void CGameContext::ConAddVote(IConsole::IResult *pResult, void *pUserData)
 	if(!pSelf->Console()->LineIsValid(pCommand) || str_length(pCommand) >= VOTE_CMD_LENGTH)
 	{
 		char aBuf[256];
-		str_format(aBuf, sizeof(aBuf), "skipped invalid command '%s'", pCommand);
+		str_format(aBuf, sizeof(aBuf), "skipped invalid command '%s', because the command string exceeds the maximum of %d", pCommand, (int)VOTE_CMD_LENGTH);
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
 		return;
 	}
@@ -1607,7 +1607,7 @@ void CGameContext::ConAddVote(IConsole::IResult *pResult, void *pUserData)
 	if(str_length(pDescription) >= VOTE_DESC_LENGTH || *pDescription == 0)
 	{
 		char aBuf[256];
-		str_format(aBuf, sizeof(aBuf), "skipped invalid option '%s'", pDescription);
+		str_format(aBuf, sizeof(aBuf), "skipped invalid option '%s', because the description exceeds the maximum of %d", pDescription, (int)VOTE_DESC_LENGTH);
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
 		return;
 	}
@@ -1619,9 +1619,8 @@ void CGameContext::ConAddVote(IConsole::IResult *pResult, void *pUserData)
 		if(str_comp_nocase(pDescription, pOption->m_aDescription) == 0)
 		{
 			char aBuf[256];
-			str_format(aBuf, sizeof(aBuf), "option '%s' already exists", pDescription);
+			str_format(aBuf, sizeof(aBuf), "dublicate vote option for '%s'", pDescription);
 			pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
-			return;
 		}
 		pOption = pOption->m_pNext;
 	}
