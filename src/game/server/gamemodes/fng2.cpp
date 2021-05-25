@@ -284,19 +284,19 @@ int CGameControllerFNG2::OnCharacterDeath(class CCharacter *pVictim, class CPlay
 			}
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
 		} else if(Weapon == WEAPON_SPIKE_GREEN){
-			pKiller->m_Stats.m_GrabsTeam++;
+			pKiller->m_Stats.m_GrabsGreen++;
 			pVictim->GetPlayer()->m_Stats.m_Deaths++;
 			m_aTeamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeGreen;
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
 			if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeGreen);
 		} else if(Weapon == WEAPON_SPIKE_PURPLE){
-			pKiller->m_Stats.m_GrabsTeam++;
+			pKiller->m_Stats.m_GrabsPurple++;
 			pVictim->GetPlayer()->m_Stats.m_Deaths++;
 			m_aTeamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikePurple;
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
 			if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikePurple);
 		} else if(Weapon == WEAPON_SPIKE_GOLD){
-			pKiller->m_Stats.m_GrabsSpecial++;
+			pKiller->m_Stats.m_GrabsGold++;
 			pVictim->GetPlayer()->m_Stats.m_Deaths++;
 			m_aTeamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeGold;
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;

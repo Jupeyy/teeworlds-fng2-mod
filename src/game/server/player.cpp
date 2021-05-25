@@ -378,11 +378,11 @@ void CPlayer::CalcScore(){
 	if(g_Config.m_SvScoreDisplay == 0){
 		m_Score = m_Stats.m_Kills + m_Stats.m_Unfreezes;
 		//TODO: make this configurable
-		m_Score += (m_Stats.m_GrabsNormal * g_Config.m_SvPlayerScoreSpikeNormal) + (m_Stats.m_GrabsTeam * g_Config.m_SvPlayerScoreSpikeTeam) + (m_Stats.m_GrabsFalse * g_Config.m_SvPlayerScoreSpikeFalse) + (m_Stats.m_GrabsSpecial * g_Config.m_SvPlayerScoreSpikeGold);
+		m_Score += (m_Stats.m_GrabsNormal * g_Config.m_SvPlayerScoreSpikeNormal) + (m_Stats.m_GrabsTeam * g_Config.m_SvPlayerScoreSpikeTeam) + (m_Stats.m_GrabsFalse * g_Config.m_SvPlayerScoreSpikeFalse) + (m_Stats.m_GrabsGold * g_Config.m_SvPlayerScoreSpikeGold) + (m_Stats.m_GrabsGreen * g_Config.m_SvPlayerScoreSpikeGreen) + (m_Stats.m_GrabsPurple * g_Config.m_SvPlayerScoreSpikePurple);
 	} else {
 		m_Score = m_Stats.m_Kills + m_Stats.m_Unfreezes - m_Stats.m_Hits;
 		//TODO: make this configurable
-		m_Score += (m_Stats.m_GrabsNormal * g_Config.m_SvPlayerScoreSpikeNormal) + (m_Stats.m_GrabsTeam * g_Config.m_SvPlayerScoreSpikeTeam) + (m_Stats.m_GrabsFalse * g_Config.m_SvPlayerScoreSpikeFalse) + (m_Stats.m_GrabsSpecial * g_Config.m_SvPlayerScoreSpikeGold) - (m_Stats.m_Deaths * g_Config.m_SvPlayerScoreSpikeNormal);
+		m_Score += (m_Stats.m_GrabsNormal * g_Config.m_SvPlayerScoreSpikeNormal) + (m_Stats.m_GrabsTeam * g_Config.m_SvPlayerScoreSpikeTeam) + (m_Stats.m_GrabsFalse * g_Config.m_SvPlayerScoreSpikeFalse) + (m_Stats.m_GrabsGold * g_Config.m_SvPlayerScoreSpikeGold) + (m_Stats.m_GrabsGreen * g_Config.m_SvPlayerScoreSpikeGreen) + (m_Stats.m_GrabsPurple * g_Config.m_SvPlayerScoreSpikePurple) - (m_Stats.m_Deaths * g_Config.m_SvPlayerScoreSpikeNormal);
 		m_Score -= m_Stats.m_Teamkills;	
 	}
 }

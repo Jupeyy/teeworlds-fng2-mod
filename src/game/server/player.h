@@ -64,7 +64,9 @@ public:
 		int m_GrabsNormal; //kills made by grabbing oponents into spikes - normal spikes
 		int m_GrabsTeam; //kills made by grabbing oponents into spikes - team spikes
 		int m_GrabsFalse; //kills made by grabbing oponents into spikes - oponents spikes
-		int m_GrabsSpecial; //kills made by grabbing oponents into spikes - golden spikes or for non 4-teams fng other spike colors than the team colors
+		int m_GrabsGold; //kills made by grabbing oponents into spikes - golden spikes
+		int m_GrabsGreen; //kills made by grabbing oponents into spikes - for non 4-teams fng green spikes
+		int m_GrabsPurple; //kills made by grabbing oponents into spikes - for non 4-teams fng purple spikes
 		int m_Deaths; //death by spikes -- we don't make a difference of the spike types here
 		int m_Hits; //hits by oponents weapon
 		int m_Selfkills;

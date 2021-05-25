@@ -498,7 +498,7 @@ int CGameControllerFNG24Teams::OnCharacterDeath(class CCharacter *pVictim, class
 			}
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
 		} else if(Weapon == WEAPON_SPIKE_GOLD){
-			pKiller->m_Stats.m_GrabsSpecial++;
+			pKiller->m_Stats.m_GrabsGold++;
 			pVictim->GetPlayer()->m_Stats.m_Deaths++;
 			m_a4Teamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeGold;
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
