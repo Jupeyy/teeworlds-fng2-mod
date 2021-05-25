@@ -116,6 +116,8 @@ public:
 		int m_Latency = 0;
 		int m_SnapRate;
 
+		int m_PreferedTeam;
+
 		//netlimi
 		int m_TrafficSince;
 		int m_Traffic;

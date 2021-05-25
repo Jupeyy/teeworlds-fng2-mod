@@ -292,6 +292,8 @@ public:
 	virtual void OnConsoleInit();
 	virtual void OnShutdown();
 
+	virtual int PreferedTeamPlayer(int ClientID);
+
 	virtual void OnTick();
 	virtual void OnPreSnap();
 	virtual void OnSnap(int ClientID);
@@ -299,7 +301,7 @@ public:
 
 	virtual void OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID);
 
-	virtual void OnClientConnected(int ClientID);
+	virtual void OnClientConnected(int ClientID, int PreferedTeam = -2);
 	virtual void OnClientEnter(int ClientID);
 	virtual bool OnClientDrop(int ClientID, const char *pReason, bool Force);
 	virtual void OnClientDirectInput(int ClientID, void *pInput);

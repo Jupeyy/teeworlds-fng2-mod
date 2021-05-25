@@ -486,6 +486,7 @@ int CServer::Init()
 		m_aClients[i].m_Snapshots.Init();
 		m_aClients[i].m_Traffic = 0;
 		m_aClients[i].m_TrafficSince = 0;
+		m_aClients[i].m_PreferedTeam = -2;
 		m_aClients[i].m_uiGameID = GAME_ID_INVALID;
 	}
 
@@ -769,6 +770,7 @@ int CServer::NewClientCallbackImpl(int ClientID, void *pUser)
 	pThis->m_aClients[ClientID].m_pRconCmdToSend = 0;
 	pThis->m_aClients[ClientID].m_Traffic = 0;
 	pThis->m_aClients[ClientID].m_TrafficSince = 0;
+	pThis->m_aClients[ClientID].m_PreferedTeam = -2;
 	pThis->m_aClients[ClientID].Reset();
 
 	++pThis->m_PlayerCount;
@@ -825,6 +827,7 @@ int CServer::DelClientCallback(int ClientID, const char *pReason, void *pUser, b
 		pThis->m_aClients[ClientID].m_pRconCmdToSend = 0;
 		pThis->m_aClients[ClientID].m_Traffic = 0;
 		pThis->m_aClients[ClientID].m_TrafficSince = 0;
+		pThis->m_aClients[ClientID].m_PreferedTeam = -2;
 		pThis->m_aClients[ClientID].m_Snapshots.PurgeAll();
 		--pThis->m_PlayerCount;
 	}
@@ -1113,12 +1116,12 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 				Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "server", aBuf);
 				m_aClients[ClientID].m_State = CClient::STATE_READY;
 				if(m_aClients[ClientID].m_uiGameID == GAME_ID_INVALID) {
-					GameServer()->OnClientConnected(ClientID);
+					GameServer()->OnClientConnected(ClientID, m_aClients[ClientID].m_PreferedTeam);
 					m_aClients[ClientID].m_uiGameID = 0;
 				}
 				else {		
 					sGame* p = GetGame(m_aClients[ClientID].m_uiGameID);
-					if(p != NULL) p->GameServer()->OnClientConnected(ClientID);					
+					if(p != NULL) p->GameServer()->OnClientConnected(ClientID, m_aClients[ClientID].m_PreferedTeam);					
 				}
 				SendConnectionReady(ClientID);
 			}
@@ -1850,6 +1853,13 @@ int CServer::Run()
 				// load map
 				if(LoadMap(g_Config.m_SvMap))
 				{
+					int aPreferedTeams[MAX_CLIENTS];
+
+					for(int c = 0; c < MAX_CLIENTS; c++)
+					{
+						aPreferedTeams[c] = GameServer()->PreferedTeamPlayer(c);
+					}
+
 					// new map loaded
 					GameServer()->OnShutdown();
 
@@ -1861,6 +1871,7 @@ int CServer::Run()
 						SendMap(c);
 						m_aClients[c].Reset();
 						m_aClients[c].m_State = CClient::STATE_CONNECTING;
+						m_aClients[c].m_PreferedTeam = aPreferedTeams[c];
 					}
 
 					m_GameStartTime = time_get();
@@ -2383,7 +2394,14 @@ bool CServer::CheckForConnectingPlayers(unsigned int GameID){
 bool CServer::ChangeGameServerMap(unsigned int GameID, const char* pMapName){
 	sGame* g = GetGame(GameID);
 	if(g){
-		if(ChangeMap(pMapName, GameID)){		
+		if(ChangeMap(pMapName, GameID)){	
+			int aPreferedTeams[MAX_CLIENTS];
+
+			for(int c = 0; c < MAX_CLIENTS; c++)
+			{
+				aPreferedTeams[c] = GameServer()->PreferedTeamPlayer(c);
+			}
+
 			// new map loaded
 			g->GameServer()->OnShutdown();
 
@@ -2396,6 +2414,7 @@ bool CServer::ChangeGameServerMap(unsigned int GameID, const char* pMapName){
 				SendMap(c, GameID);
 				m_aClients[c].Reset();
 				m_aClients[c].m_State = CClient::STATE_CONNECTING;
+				m_aClients[c].m_PreferedTeam = aPreferedTeams[c];
 			}
 			
 			sMap* pMap = m_pMaps;

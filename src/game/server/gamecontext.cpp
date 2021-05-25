@@ -5,6 +5,7 @@
 #include <engine/shared/config.h>
 #include <engine/map.h>
 #include <engine/console.h>
+#include "engine/shared/protocol.h"
 #include "gamecontext.h"
 #include <game/version.h>
 #include <game/collision.h>
@@ -654,10 +655,12 @@ void CGameContext::OnClientEnter(int ClientID)
 	m_VoteUpdate = true;
 }
 
-void CGameContext::OnClientConnected(int ClientID)
+void CGameContext::OnClientConnected(int ClientID, int PreferedTeam)
 {
 	// Check which team the player should be on
-	const int StartTeam = m_pController->GetAutoTeam(ClientID);
+	int StartTeam = m_pController->ClampTeam(PreferedTeam);
+	if(PreferedTeam == -2)
+		StartTeam = m_pController->GetAutoTeam(ClientID);
 
 	m_apPlayers[ClientID] = new(ClientID) CPlayer(this, ClientID, StartTeam);
 	//players[client_id].init(client_id);
@@ -2027,6 +2030,13 @@ void CGameContext::OnShutdown()
 	delete m_pController;
 	m_pController = 0;
 	Clear();
+}
+
+int CGameContext::PreferedTeamPlayer(int ClientID) {
+	if(ClientID >= 0 && ClientID < MAX_CLIENTS && m_apPlayers[ClientID])
+		return m_apPlayers[ClientID]->GetTeam();
+
+	return -2;
 }
 
 void CGameContext::OnSnap(int ClientID)
