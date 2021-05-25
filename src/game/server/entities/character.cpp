@@ -184,7 +184,7 @@ void CCharacter::HandleFreeze()
 void CCharacter::DoWeaponSwitch()
 {
 	// make sure we can switch
-	if(m_QueuedWeapon == -1)
+	if((g_Config.m_SvPerWeaponReload == 0 && m_ReloadTimer[GetActiveWeaponForReload()] != 0) || m_QueuedWeapon == -1)
 		return;
 
 	// switch Weapon
