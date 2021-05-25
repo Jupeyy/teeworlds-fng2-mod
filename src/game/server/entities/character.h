@@ -46,6 +46,8 @@ public:
 	void OnPredictedInput(CNetObj_PlayerInput *pNewInput);
 	void OnDirectInput(CNetObj_PlayerInput *pNewInput);
 	void ResetInput();
+
+	int GetActiveWeaponForReload();
 	void FireWeapon();
 
 	void Die(int Killer, int Weapon);
@@ -106,7 +108,7 @@ private:
 	int m_LastWeapon;
 	int m_QueuedWeapon;
 
-	int m_ReloadTimer;
+	int m_ReloadTimer[NUM_WEAPONS];
 	int m_AttackTick;
 
 	int m_EmoteType;

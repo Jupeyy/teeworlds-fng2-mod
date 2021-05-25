@@ -43,5 +43,6 @@ MACRO_CONFIG_INT(SvKillTakeOverTime, sv_kill_take_over_time, 250, -1, 1250, CFGF
 
 MACRO_CONFIG_INT(SvGrenadeDamageToHit, sv_grenade_damage_to_hit, 4, 0, 6, CFGFLAG_SERVER, "The damage that needs to be dealed with the grenade to freeze the opponent. 0: all shots will kill, x: damage that must be dealed to freeze the opponent")
 
-
 MACRO_CONFIG_INT(SvTrivia, sv_trivia, 1, 0, 1, CFGFLAG_SERVER, "Send trivia at round end.")
+
+MACRO_CONFIG_INT(SvPerWeaponReload, sv_per_weapon_reload, 1, 0, 1, CFGFLAG_SERVER, "Reload every weapon individually(allows switching weapons).")
