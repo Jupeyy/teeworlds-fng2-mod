@@ -321,6 +321,7 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 		Msg.m_pMessage = pText;
 		SendPackMsg(&Msg, MSGFLAG_VITAL);
 	}
+
 	else if((Team == CHAT_WHISPER_RECV || Team == CHAT_WHISPER_SEND) && To != -1){
 		CNetMsg_Sv_Chat Msg;
 		Msg.m_Team = Team;
@@ -1285,7 +1286,7 @@ void CGameContext::CmdStats(CGameContext* pContext, int pClientID, const char** 
 		"║\n"
 		"║Mates hammer-/unfrozen: %d/%d\n"
 		"║\n"
-		"╚══════════════════════════\n", p->m_Stats.m_Kills, p->m_Stats.m_Hits, (p->m_Stats.m_Hits != 0) ? (float)((float)p->m_Stats.m_Kills / (float)p->m_Stats.m_Hits) : (float)p->m_Stats.m_Kills, p->m_Stats.m_Shots, ((float)p->m_Stats.m_Kills / (float)(p->m_Stats.m_Shots == 0 ? 1: p->m_Stats.m_Shots)) * 100.f, p->m_Stats.m_GrabsNormal, p->m_Stats.m_GrabsTeam, p->m_Stats.m_GrabsGold, p->m_Stats.m_GrabsFalse, p->m_Stats.m_Deaths, p->m_Stats.m_UnfreezingHammerHits, p->m_Stats.m_Unfreezes);
+		"╚══════════════════════════\n", p->m_Stats.m_Kills, p->m_Stats.m_Hits, (p->m_Stats.m_Hits != 0) ? (float)((float)p->m_Stats.m_Kills / (float)p->m_Stats.m_Hits) : (float)p->m_Stats.m_Kills, p->m_Stats.m_Shots, ((float)p->m_Stats.m_Kills / (float)(p->m_Stats.m_Shots == 0 ? 1: p->m_Stats.m_Shots)) * 100.f, p->m_Stats.m_GrabsNormal, p->m_Stats.m_GrabsTeam, p->m_Stats.m_GrabsSpecial, p->m_Stats.m_GrabsFalse, p->m_Stats.m_Deaths, p->m_Stats.m_UnfreezingHammerHits, p->m_Stats.m_Unfreezes);
 
 	CNetMsg_Sv_Motd Msg;
 	Msg.m_pMessage = buff;
@@ -2117,7 +2118,7 @@ void CGameContext::SendRoundStats() {
 		SendChatTarget(i, buff);
 		str_format(buff, 300, "║Kills(team spikes): %d", p->m_Stats.m_GrabsTeam);
 		SendChatTarget(i, buff);
-		str_format(buff, 300, "║Kills(golden spikes): %d", p->m_Stats.m_GrabsGold);
+		str_format(buff, 300, "║Kills(golden/colored spikes): %d", p->m_Stats.m_GrabsSpecial);
 		SendChatTarget(i, buff);
 		str_format(buff, 300, "║Kills(false spikes): %d", p->m_Stats.m_GrabsFalse);
 		SendChatTarget(i, buff);
@@ -2437,7 +2438,7 @@ void CGameContext::SendRandomTrivia(){
 			TriviaSent = true;
 		}
 	}
-	//player that threw most opponents into golden spikes
+	//player that threw most opponents into golden/colored spikes
 	else if(r == 10){
 		int MaxGold = 0;
 		int PlayerID = -1;
@@ -2445,8 +2446,8 @@ void CGameContext::SendRandomTrivia(){
 		for (int i = 0; i < MAX_CLIENTS; ++i) {
 			CPlayer* p = m_apPlayers[i];
 			if (!p || p->GetTeam() == TEAM_SPECTATORS) continue;
-			if(MaxGold < p->m_Stats.m_GrabsGold){
-				MaxGold = p->m_Stats.m_GrabsGold;
+			if(MaxGold < p->m_Stats.m_GrabsSpecial){
+				MaxGold = p->m_Stats.m_GrabsSpecial;
 				PlayerID = i;
 			}
 		}

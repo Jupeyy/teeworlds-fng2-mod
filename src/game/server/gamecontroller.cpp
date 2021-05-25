@@ -854,3 +854,9 @@ void IGameController::ShuffleTeams()
 bool IGameController::UseFakeTeams(){
 	return false;
 }
+
+bool IGameController::IsFalseSpike(int Team, int SpikeFlags) {
+	if (Team == TEAM_BLUE && (SpikeFlags&(CCollision::COLFLAG_SPIKE_RED)) != 0) return true;
+	else if (Team == TEAM_RED && (SpikeFlags&(CCollision::COLFLAG_SPIKE_BLUE)) != 0) return true;
+	return false;
+}

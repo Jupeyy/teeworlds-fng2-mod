@@ -8,11 +8,15 @@ MACRO_CONFIG_INT(SvScoreDisplay, sv_score_display, 0, 0, 1, CFGFLAG_SERVER, "0: 
 MACRO_CONFIG_INT(SvTeamScoreSpikeNormal, sv_team_score_normal, 5, 0, 100, CFGFLAG_SERVER, "Points a team receives for grabbing into normal spikes")
 MACRO_CONFIG_INT(SvTeamScoreSpikeTeam, sv_team_score_team, 10, 0, 100, CFGFLAG_SERVER, "Points a team receives for grabbing into team spikes")
 MACRO_CONFIG_INT(SvTeamScoreSpikeGold, sv_team_score_gold, 10, 0, 100, CFGFLAG_SERVER, "Points a team receives for grabbing into golden spikes")
+MACRO_CONFIG_INT(SvTeamScoreSpikeGreen, sv_team_score_green, 10, 0, 100, CFGFLAG_SERVER, "Points a team receives for grabbing into green spikes(non 4-teams fng only)")
+MACRO_CONFIG_INT(SvTeamScoreSpikePurple, sv_team_score_purple, 10, 0, 100, CFGFLAG_SERVER, "Points a team receives for grabbing into purple spikes(non 4-teams fng only)")
 MACRO_CONFIG_INT(SvTeamScoreSpikeFalse, sv_team_score_false, -2, -100, 0, CFGFLAG_SERVER, "Points a team receives for grabbing into opponents spikes")
 
 MACRO_CONFIG_INT(SvPlayerScoreSpikeNormal, sv_player_score_normal, 3, 0, 100, CFGFLAG_SERVER, "Points a player receives for grabbing into normal spikes")
 MACRO_CONFIG_INT(SvPlayerScoreSpikeTeam, sv_player_score_team, 5, 0, 100, CFGFLAG_SERVER, "Points a player receives for grabbing into team spikes")
 MACRO_CONFIG_INT(SvPlayerScoreSpikeGold, sv_player_score_gold, 7, 0, 100, CFGFLAG_SERVER, "Points a player receives for grabbing into golden spikes")
+MACRO_CONFIG_INT(SvPlayerScoreSpikeGreen, sv_player_score_green, 5, 0, 100, CFGFLAG_SERVER, "Points a player receives for grabbing into green spikes(non 4-teams fng only)")
+MACRO_CONFIG_INT(SvPlayerScoreSpikePurple, sv_player_score_purple, 6, 0, 100, CFGFLAG_SERVER, "Points a player receives for grabbing into purple spikes(non 4-teams fng only)")
 MACRO_CONFIG_INT(SvPlayerScoreSpikeFalse, sv_player_score_false, -5, -100, 0, CFGFLAG_SERVER, "Points a player receives for grabbing into opponents spikes")
 
 MACRO_CONFIG_INT(SvFalseSpikeFreeze, sv_false_spike_freeze, 5, 0, 60, CFGFLAG_SERVER, "The time, in seconds, a player gets frozen, if he grabbed a frozen opponent into the opponents spikes")

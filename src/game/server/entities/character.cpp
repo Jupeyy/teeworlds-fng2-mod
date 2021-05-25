@@ -805,7 +805,7 @@ void CCharacter::DieSpikes(int pPlayerID, int spikes_flag) {
 			Msg.m_ModeSpecial = ModeSpecial;
 			GameServer()->SendPackMsg(&Msg, MSGFLAG_VITAL);
 
-			if (GameServer()->m_pController->IsTeamplay() && IsFalseSpike(GameServer()->m_apPlayers[pPlayerID]->GetTeam(), spikes_flag)) {
+			if (GameServer()->m_pController->IsTeamplay() && GameServer()->m_pController->IsFalseSpike(GameServer()->m_apPlayers[pPlayerID]->GetTeam(), spikes_flag)) {
 				CCharacter* pKiller = ((CPlayer*)GameServer()->m_apPlayers[pPlayerID])->GetCharacter();
 				if (pKiller && !pKiller->IsFrozen()) {
 					pKiller->Freeze(g_Config.m_SvFalseSpikeFreeze);
@@ -853,14 +853,6 @@ void CCharacter::DieSpikes(int pPlayerID, int spikes_flag) {
 		GameServer()->CreateDeath(m_Pos, m_pPlayer->GetCID());
 	}
 
-}
-
-bool CCharacter::IsFalseSpike(int Team, int spike_flag) {
-	if (Team == TEAM_BLUE && (spike_flag&(CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_GREEN | CCollision::COLFLAG_SPIKE_PURPLE)) != 0) return true;
-	else if (Team == TEAM_RED && (spike_flag&(CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_GREEN | CCollision::COLFLAG_SPIKE_PURPLE)) != 0) return true;
-	else if (Team == TEAM_GREEN && (spike_flag&(CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_PURPLE)) != 0) return true;
-	else if (Team == TEAM_PURPLE && (spike_flag&(CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_GREEN | CCollision::COLFLAG_SPIKE_BLUE)) != 0) return true;
-	return false;
 }
 
 void CCharacter::Hit(int Killer, int Weapon)

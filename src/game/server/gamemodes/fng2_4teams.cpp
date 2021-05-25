@@ -498,7 +498,7 @@ int CGameControllerFNG24Teams::OnCharacterDeath(class CCharacter *pVictim, class
 			}
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
 		} else if(Weapon == WEAPON_SPIKE_GOLD){
-			pKiller->m_Stats.m_GrabsGold++;
+			pKiller->m_Stats.m_GrabsSpecial++;
 			pVictim->GetPlayer()->m_Stats.m_Deaths++;
 			m_a4Teamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeGold;
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
@@ -936,4 +936,12 @@ void CGameControllerFNG24Teams::CmdJoinTeam(CGameContext* pContext, int pClientI
 	} else {
 		pContext->SendChatTarget(pClientID, "Join commands are: r or red, b or blue, g or green, p or purple and s or spectator to join the team");
 	}
+}
+
+bool CGameControllerFNG24Teams::IsFalseSpike(int Team, int SpikeFlags) {
+	if (Team == TEAM_BLUE && (SpikeFlags&(CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_GREEN | CCollision::COLFLAG_SPIKE_PURPLE)) != 0) return true;
+	else if (Team == TEAM_RED && (SpikeFlags&(CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_GREEN | CCollision::COLFLAG_SPIKE_PURPLE)) != 0) return true;
+	else if (Team == TEAM_GREEN && (SpikeFlags&(CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_PURPLE)) != 0) return true;
+	else if (Team == TEAM_PURPLE && (SpikeFlags&(CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_GREEN | CCollision::COLFLAG_SPIKE_BLUE)) != 0) return true;
+	return false;
 }

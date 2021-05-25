@@ -38,6 +38,8 @@ public:
 	void EvaluateSpawnType(CSpawnEval *pEval, int Type);
 	
 	static void CmdJoinTeam(CGameContext* pContext, int pClientID, const char** pArgs, int ArgNum);
+
+	virtual bool IsFalseSpike(int Team, int SpikeFlags);
 protected:
 	void EndRound();
 	
