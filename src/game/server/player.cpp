@@ -393,15 +393,15 @@ void CPlayer::ResetStats(){
 
 bool CPlayer::AddSnappingClient(int RealID, float Distance, char ClientVersion, int& pId) {
 	if (RealID == m_ClientID) {
-		if ((ClientVersion == CLIENT_VERSION_NORMAL && MAX_CLIENTS > VANILLA_CLIENT_MAX_CLIENTS) || (MAX_CLIENTS > DDNET_CLIENT_MAX_CLIENTS)) pId = 0;
+		if ((ClientVersion == CLIENT_VERSION_NORMAL && (int)MAX_CLIENTS > (int)VANILLA_CLIENT_MAX_CLIENTS) || ((int)MAX_CLIENTS > (int)DDNET_CLIENT_MAX_CLIENTS)) pId = 0;
 		return true;
 	}
-	else if (ClientVersion == CLIENT_VERSION_NORMAL && MAX_CLIENTS > VANILLA_CLIENT_MAX_CLIENTS) {
+	else if (ClientVersion == CLIENT_VERSION_NORMAL && (int)MAX_CLIENTS > (int)VANILLA_CLIENT_MAX_CLIENTS) {
 		int id = -1;
 		float highestDistance = 0;
 		// VANILLA_CLIENT_MAX_CLIENTS - 1 to allow chatting!!
 		for (int i = 1; i < VANILLA_CLIENT_MAX_CLIENTS - 1; ++i) {
-			if (m_SnappingClients[i].id == 0xFFFFFFFF || m_SnappingClients[i].id == RealID) {
+			if (m_SnappingClients[i].id == -1 || m_SnappingClients[i].id == RealID) {
 				m_SnappingClients[i].id = RealID;
 				m_SnappingClients[i].distance = Distance;
 				pId = i;
@@ -422,11 +422,11 @@ bool CPlayer::AddSnappingClient(int RealID, float Distance, char ClientVersion, 
 		}
 	}
 	else {
-		if (MAX_CLIENTS > DDNET_CLIENT_MAX_CLIENTS) {
+		if ((int)MAX_CLIENTS > (int)DDNET_CLIENT_MAX_CLIENTS) {
 			int id = -1;
 			float highestDistance = 0;
 			for (int i = 1; i < DDNET_CLIENT_MAX_CLIENTS - 1; ++i) {
-				if (m_SnappingClients[i].id == 0xFFFFFFFF || m_SnappingClients[i].id == RealID) {
+				if (m_SnappingClients[i].id == -1 || m_SnappingClients[i].id == RealID) {
 					m_SnappingClients[i].id = RealID;
 					m_SnappingClients[i].distance = Distance;
 					pId = i;
@@ -454,13 +454,13 @@ bool CPlayer::AddSnappingClient(int RealID, float Distance, char ClientVersion, 
 bool CPlayer::IsSnappingClient(int RealID, char ClientVersion, int& id) {
 	if (RealID == -1) return false;
 	else if (RealID == m_ClientID) {
-		if ((ClientVersion == CLIENT_VERSION_NORMAL && MAX_CLIENTS > VANILLA_CLIENT_MAX_CLIENTS) || (MAX_CLIENTS > DDNET_CLIENT_MAX_CLIENTS)) id = 0;
+		if ((ClientVersion == CLIENT_VERSION_NORMAL && (int)MAX_CLIENTS > (int)VANILLA_CLIENT_MAX_CLIENTS) || ((int)MAX_CLIENTS > (int)DDNET_CLIENT_MAX_CLIENTS)) id = 0;
 		return true;
 	}
-	else if (ClientVersion == CLIENT_VERSION_NORMAL && MAX_CLIENTS > VANILLA_CLIENT_MAX_CLIENTS) {
+	else if (ClientVersion == CLIENT_VERSION_NORMAL && (int)MAX_CLIENTS > (int)VANILLA_CLIENT_MAX_CLIENTS) {
 		// VANILLA_CLIENT_MAX_CLIENTS - 1 to allow chatting!!
 		for (int i = 0; i < VANILLA_CLIENT_MAX_CLIENTS - 1; ++i) {
-			if (m_SnappingClients[i].id == 0xFFFFFFFF || m_SnappingClients[i].id == RealID) {
+			if (m_SnappingClients[i].id == -1 || m_SnappingClients[i].id == RealID) {
 				m_SnappingClients[i].id = RealID;
 				id = i;
 				return true;
@@ -468,9 +468,9 @@ bool CPlayer::IsSnappingClient(int RealID, char ClientVersion, int& id) {
 		}
 	}
 	else {
-		if (MAX_CLIENTS > DDNET_CLIENT_MAX_CLIENTS) {
+		if ((int)MAX_CLIENTS > (int)DDNET_CLIENT_MAX_CLIENTS) {
 			for (int i = 0; i < DDNET_CLIENT_MAX_CLIENTS - 1; ++i) {
-				if (m_SnappingClients[i].id == 0xFFFFFFFF || m_SnappingClients[i].id == RealID) {
+				if (m_SnappingClients[i].id == -1 || m_SnappingClients[i].id == RealID) {
 					m_SnappingClients[i].id = RealID;
 					id = i;
 					return true;
@@ -484,12 +484,12 @@ bool CPlayer::IsSnappingClient(int RealID, char ClientVersion, int& id) {
 
 int CPlayer::GetRealIDFromSnappingClients(int SnapID) {
 	if(SnapID < 0 || SnapID >= DDNET_CLIENT_MAX_CLIENTS) return -1;
-	if (m_ClientVersion == CLIENT_VERSION_NORMAL && MAX_CLIENTS > VANILLA_CLIENT_MAX_CLIENTS) {
-		if (m_SnappingClients[SnapID].id != 0xFFFFFFFF) return m_SnappingClients[SnapID].id;
+	if (m_ClientVersion == CLIENT_VERSION_NORMAL && (int)MAX_CLIENTS > (int)VANILLA_CLIENT_MAX_CLIENTS) {
+		if (m_SnappingClients[SnapID].id != -1) return m_SnappingClients[SnapID].id;
 	}
 	else {
-		if (MAX_CLIENTS > DDNET_CLIENT_MAX_CLIENTS) {			
-			if (m_SnappingClients[SnapID].id != 0xFFFFFFFF) return m_SnappingClients[SnapID].id;
+		if ((int)MAX_CLIENTS > (int)DDNET_CLIENT_MAX_CLIENTS) {			
+			if (m_SnappingClients[SnapID].id != -1) return m_SnappingClients[SnapID].id;
 		}
 		else return SnapID;
 	}
@@ -497,7 +497,7 @@ int CPlayer::GetRealIDFromSnappingClients(int SnapID) {
 }
 
 void CPlayer::FakeSnap(int PlayerID) {
-	if ((m_ClientVersion == CLIENT_VERSION_NORMAL && MAX_CLIENTS > VANILLA_CLIENT_MAX_CLIENTS) || (MAX_CLIENTS > DDNET_CLIENT_MAX_CLIENTS))
+	if ((m_ClientVersion == CLIENT_VERSION_NORMAL && (int)MAX_CLIENTS > (int)VANILLA_CLIENT_MAX_CLIENTS) || ((int)MAX_CLIENTS > (int)DDNET_CLIENT_MAX_CLIENTS))
 	{
 		int FakeID = PlayerID;
 

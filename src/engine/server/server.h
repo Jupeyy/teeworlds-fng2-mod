@@ -265,13 +265,13 @@ public:
 	void RegisterCommands();
 
 	virtual int StartGameServer(const char* pMap, struct CConfiguration* pConfig = NULL);
-	virtual void StopGameServer(int GameID, int MoveToGameID = -1);
-	virtual bool ChangeGameServerMap(int GameID, const char* pMapName);
-	virtual void MovePlayerToGameServer(int PlayerID, int GameID);
-	virtual void KickConnectingPlayers(int GameID, const char* pReason);
-	virtual bool CheckForConnectingPlayers(int GameID);
+	virtual void StopGameServer(unsigned int GameID, int MoveToGameID = -1);
+	virtual bool ChangeGameServerMap(unsigned int GameID, const char* pMapName);
+	virtual void MovePlayerToGameServer(int PlayerID, unsigned int GameID);
+	virtual void KickConnectingPlayers(unsigned int GameID, const char* pReason);
+	virtual bool CheckForConnectingPlayers(unsigned int GameID);
 
-	virtual struct sGame* GetGame(int GameID);
+	virtual struct sGame* GetGame(unsigned int GameID);
 
 	virtual int SnapNewID();
 	virtual void SnapFreeID(int ID);

@@ -1005,8 +1005,8 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 	
 			if(m_aClients[ClientID].m_uiGameID == GAME_ID_INVALID || m_aClients[ClientID].m_uiGameID == 0){
 				int Chunk = Unpacker.GetInt();
-				unsigned int ChunkSize = 1024-128;
-				unsigned int Offset = Chunk * ChunkSize;
+				int ChunkSize = 1024-128;
+				int Offset = Chunk * ChunkSize;
 				int Last = 0;
 
 				//ddnet code
@@ -1057,8 +1057,8 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 				
 				if(mapToDownload){
 					int Chunk = Unpacker.GetInt();
-					unsigned int ChunkSize = 1024-128;
-					unsigned int Offset = Chunk * ChunkSize;
+					int ChunkSize = 1024-128;
+					int Offset = Chunk * ChunkSize;
 					int Last = 0;
 
 					//ddnet code
@@ -1514,8 +1514,8 @@ void CServer::PumpNetwork()
 				continue;
 			if(m_aClients[i].m_uiGameID == GAME_ID_INVALID || m_aClients[i].m_uiGameID == 0){
 				int Chunk = lastsent[i]++;
-				unsigned int ChunkSize = 1024-128;
-				unsigned int Offset = Chunk * ChunkSize;
+				int ChunkSize = 1024-128;
+				int Offset = Chunk * ChunkSize;
 				int Last = 0;
 
 				//ddnet code			
@@ -1556,8 +1556,8 @@ void CServer::PumpNetwork()
 				
 				if(mapToDownload){
 					int Chunk = lastsent[i]++;
-					unsigned int ChunkSize = 1024-128;
-					unsigned int Offset = Chunk * ChunkSize;
+					int ChunkSize = 1024-128;
+					int Offset = Chunk * ChunkSize;
 					int Last = 0;
 
 					//ddnet code
@@ -2284,7 +2284,7 @@ int CServer::StartGameServer(const char* pMap, CConfiguration* pConfig){
 	return freeGameID;	
 }
 
-void CServer::StopGameServer(int GameID, int MoveToGameID){
+void CServer::StopGameServer(unsigned int GameID, int MoveToGameID){
 	sMap* pMap = m_pMaps;
 	if(pMap){
 		sGame* pGame = m_pGames;
@@ -2334,7 +2334,7 @@ void CServer::StopGameServer(int GameID, int MoveToGameID){
 	}
 }
 
-void CServer::MovePlayerToGameServer(int PlayerID, int GameID){
+void CServer::MovePlayerToGameServer(int PlayerID, unsigned int GameID){
 	if(PlayerID < MAX_CLIENTS){
 		if(m_aClients[PlayerID].m_State <= CClient::STATE_AUTH || m_aClients[PlayerID].m_uiGameID == GameID)
 			return;
@@ -2360,7 +2360,7 @@ void CServer::MovePlayerToGameServer(int PlayerID, int GameID){
 	}
 }
 
-void CServer::KickConnectingPlayers(int GameID, const char* pReason){
+void CServer::KickConnectingPlayers(unsigned int GameID, const char* pReason){
 	for(int c = 0; c < MAX_CLIENTS; c++)
 	{
 		if(m_aClients[c].m_State != CClient::STATE_CONNECTING || m_aClients[c].m_uiGameID != GameID)
@@ -2370,7 +2370,7 @@ void CServer::KickConnectingPlayers(int GameID, const char* pReason){
 	}
 }
 
-bool CServer::CheckForConnectingPlayers(int GameID){	
+bool CServer::CheckForConnectingPlayers(unsigned int GameID){	
 	for(int c = 0; c < MAX_CLIENTS; c++)
 	{
 		if(m_aClients[c].m_State == CClient::STATE_CONNECTING && m_aClients[c].m_uiGameID == GameID)
@@ -2380,7 +2380,7 @@ bool CServer::CheckForConnectingPlayers(int GameID){
 	return false;
 }
 
-bool CServer::ChangeGameServerMap(int GameID, const char* pMapName){
+bool CServer::ChangeGameServerMap(unsigned int GameID, const char* pMapName){
 	sGame* g = GetGame(GameID);
 	if(g){
 		if(ChangeMap(pMapName, GameID)){		
@@ -2412,7 +2412,7 @@ bool CServer::ChangeGameServerMap(int GameID, const char* pMapName){
 }
 
 
-sGame* CServer::GetGame(int GameID){
+sGame* CServer::GetGame(unsigned int GameID){
 	sGame* p = m_pGames;
 	while(p != NULL){
 		if(p->m_uiGameID == GameID){

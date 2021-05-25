@@ -103,15 +103,15 @@ public:
 	virtual bool DemoRecorder_IsRecording() = 0;
 	
 	virtual int StartGameServer(const char* pMap, struct CConfiguration* pConfig = 0) = 0;
-	virtual void StopGameServer(int GameID, int MoveToGameID = -1) = 0;
-	virtual bool ChangeGameServerMap(int GameID, const char* pMapName) = 0;
-	virtual void MovePlayerToGameServer(int PlayerID, int GameID) = 0;
+	virtual void StopGameServer(unsigned int GameID, int MoveToGameID = -1) = 0;
+	virtual bool ChangeGameServerMap(unsigned int GameID, const char* pMapName) = 0;
+	virtual void MovePlayerToGameServer(int PlayerID, unsigned int GameID) = 0;
 	//if wanted or needed, players that are still connecting (loading the map or smth.) can be kicked all at once
-	virtual void KickConnectingPlayers(int GameID, const char* pReason) = 0;
+	virtual void KickConnectingPlayers(unsigned int GameID, const char* pReason) = 0;
 	//we can check, if wanted, if there are players connecting.. e.g. to wait at mapchange
-	virtual bool CheckForConnectingPlayers(int GameID) = 0;
+	virtual bool CheckForConnectingPlayers(unsigned int GameID) = 0;
 	
-	virtual struct sGame* GetGame(int GameID) = 0;
+	virtual struct sGame* GetGame(unsigned int GameID) = 0;
 
 };
 

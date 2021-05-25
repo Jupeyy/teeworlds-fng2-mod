@@ -1644,14 +1644,16 @@ int is_whitespace(char chr)
 int str_comp_nocase_whitespace(const char* pStr, const char* pStr2){
 	const char* c1 = pStr;
 	const char* c2 = pStr2;
+
+	char s1, s2;
 	
 	while(*c1 && *c2 && !is_whitespace(*c1) && !is_whitespace(*c2) && (*c1 == *c2 || (*c1 < *c2 ? *c1 + 32 == *c2 : *c2 + 32 == *c1))){
 		++c1;
 		++c2;
 	}
 	
-	char s1 = (is_whitespace(*c1)) ? '\0' : *c1;
-	char s2 = (is_whitespace(*c2)) ? '\0' : *c2;
+	s1 = (is_whitespace(*c1)) ? '\0' : *c1;
+	s2 = (is_whitespace(*c2)) ? '\0' : *c2;
 	
 	if(s1 >= 65 && s1 <= 90) s1 += 32;
 	if(s2 >= 65 && s2 <= 90) s2 += 32;

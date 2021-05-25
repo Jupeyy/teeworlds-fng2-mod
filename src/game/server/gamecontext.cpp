@@ -1390,9 +1390,7 @@ void CGameContext::CmdConversation(CGameContext* pContext, int pClientID, const 
 	else pContext->SendChatTarget(pClientID, "[/conversation] usage: /c <text>, after you already whispered to a player");
 }
 
-void CGameContext::CmdHelp(CGameContext* pContext, int pClientID, const char** pArgs, int ArgNum){
-	CPlayer* p = pContext->m_apPlayers[pClientID];
-	
+void CGameContext::CmdHelp(CGameContext* pContext, int pClientID, const char** pArgs, int ArgNum){	
 	if (ArgNum != 0) {
 		sServerCommand* pCmd = pContext->FindCommand(pArgs[0]);
 		if(pCmd) {
@@ -1420,25 +1418,25 @@ void CGameContext::CmdEmote(CGameContext* pContext, int pClientID, const char** 
 	if (ArgNum > 0) {
 		if (!str_comp_nocase_whitespace(pArgs[0], "angry"))
 				pPlayer->m_Emotion = EMOTE_ANGRY;
-			else if (!str_comp_nocase_whitespace(pArgs[0], "blink"))
-				pPlayer->m_Emotion = EMOTE_BLINK;
-			else if (!str_comp_nocase_whitespace(pArgs[0], "close"))
-				pPlayer->m_Emotion = EMOTE_BLINK;
-			else if (!str_comp_nocase_whitespace(pArgs[0], "happy"))
-				pPlayer->m_Emotion = EMOTE_HAPPY;
-			else if (!str_comp_nocase_whitespace(pArgs[0], "pain"))
-				pPlayer->m_Emotion = EMOTE_PAIN;
-			else if (!str_comp_nocase_whitespace(pArgs[0], "surprise"))
-				pPlayer->m_Emotion = EMOTE_SURPRISE;
-			else if (!str_comp_nocase_whitespace(pArgs[0], "normal"))
-				pPlayer->m_Emotion = EMOTE_NORMAL;
-			else
-				pContext->SendChatTarget(pClientID, "Unknown emote... Say /emote");
-			
-			int Duration = pContext->Server()->TickSpeed();
-			if(ArgNum > 1) Duration = str_toint(pArgs[1]);
-			
-			pPlayer->m_EmotionDuration = Duration * pContext->Server()->TickSpeed();
+		else if (!str_comp_nocase_whitespace(pArgs[0], "blink"))
+			pPlayer->m_Emotion = EMOTE_BLINK;
+		else if (!str_comp_nocase_whitespace(pArgs[0], "close"))
+			pPlayer->m_Emotion = EMOTE_BLINK;
+		else if (!str_comp_nocase_whitespace(pArgs[0], "happy"))
+			pPlayer->m_Emotion = EMOTE_HAPPY;
+		else if (!str_comp_nocase_whitespace(pArgs[0], "pain"))
+			pPlayer->m_Emotion = EMOTE_PAIN;
+		else if (!str_comp_nocase_whitespace(pArgs[0], "surprise"))
+			pPlayer->m_Emotion = EMOTE_SURPRISE;
+		else if (!str_comp_nocase_whitespace(pArgs[0], "normal"))
+			pPlayer->m_Emotion = EMOTE_NORMAL;
+		else
+			pContext->SendChatTarget(pClientID, "Unknown emote... Say /emote");
+		
+		int Duration = pContext->Server()->TickSpeed();
+		if(ArgNum > 1) Duration = str_toint(pArgs[1]);
+		
+		pPlayer->m_EmotionDuration = Duration * pContext->Server()->TickSpeed();
 	} else {
 		//ddrace like
 		pContext->SendChatTarget(pClientID, "Emote commands are: /emote surprise /emote blink /emote close /emote angry /emote happy /emote pain");
