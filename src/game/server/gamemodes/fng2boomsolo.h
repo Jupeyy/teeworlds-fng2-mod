@@ -6,8 +6,9 @@
 #include <base/vmath.h>
 
 #include "fng2.h"
+#include "fng2solo.h"
 
-class CGameControllerFNG2BoomSolo : public CGameControllerFNG2
+class CGameControllerFNG2BoomSolo : public CGameControllerFNG2Solo
 {
 public:
 	CGameControllerFNG2BoomSolo(class CGameContext* pGameServer);
