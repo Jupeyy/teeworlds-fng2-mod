@@ -227,7 +227,7 @@ void CGameControllerFNG24Teams::Tick()
 
 		int aT[4] = {0,0,0,0};
 		float aTScore[4] = {0,0,0,0};
-		float aPScore[MAX_CLIENTS] = {0.0f};
+		float aPScore[MAX_CLIENTS] = {};
 		for(int i = 0; i < MAX_CLIENTS; i++)
 		{
 			if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS)
@@ -261,14 +261,14 @@ void CGameControllerFNG24Teams::Tick()
 				}
 			}
 			
-			if(absolute(aT[TeamMax]-aT[TeamMin]) >= 2)
+			if(TeamMax != -1 && TeamMin != -1 && absolute(aT[TeamMax]-aT[TeamMin]) >= 2)
 			{
 				int M = TeamMax;
 				int NumBalance = absolute(aT[TeamMax]-aT[TeamMin]) / 2;
 
 				do
 				{
-					CPlayer *pP = 0;
+					CPlayer *pP = nullptr;
 					float PD = aTScore[M];
 					for(int i = 0; i < MAX_CLIENTS; i++)
 					{
@@ -282,14 +282,16 @@ void CGameControllerFNG24Teams::Tick()
 						}
 					}
 
-					// move the player to the other team
-					int Temp = pP->m_LastActionTick;
-					pP->SetTeam(TeamMin);
-					pP->m_LastActionTick = Temp;
+					if(pP != nullptr) {
+						// move the player to the other team
+						int Temp = pP->m_LastActionTick;
+						pP->SetTeam(TeamMin);
+						pP->m_LastActionTick = Temp;
 
-					pP->Respawn();
-					pP->m_ForceBalanced = true;
-					
+						pP->Respawn();
+						pP->m_ForceBalanced = true;
+					}
+
 					--aT[TeamMax];
 					++aT[TeamMin];
 				} while (--NumBalance);
