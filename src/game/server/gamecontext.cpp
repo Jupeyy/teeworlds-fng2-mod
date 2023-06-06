@@ -1057,6 +1057,8 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 
 			if(m_Config->m_SvSpamprotection && pPlayer->m_LastEmote && pPlayer->m_LastEmote+Server()->TickSpeed()*m_Config->m_SvEmoticonDelay > Server()->Tick())
 				return;
+			if(m_Config->m_SvSpamprotection && pPlayer->m_LastEmote == Server()->Tick())
+				return;
 
 			pPlayer->m_LastEmote = Server()->Tick();
 			++pPlayer->m_Stats.m_NumEmotes;
