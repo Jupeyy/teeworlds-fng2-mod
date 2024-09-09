@@ -988,8 +988,8 @@ void CCharacter::TakeHammerHit(CCharacter* pFrom)
 
 	m_Core.m_Vel += Push;
 
-	CPlayer* pPlayer = pFrom->GetPlayer();
-	if (pPlayer && (GameServer()->m_pController->IsTeamplay() && pPlayer->GetTeam() == m_pPlayer->GetTeam()))
+	CPlayer *pPlayer = pFrom->GetPlayer();
+	if (GameServer()->m_pController->IsTeamplay() && pPlayer->GetTeam() == m_pPlayer->GetTeam())
 	{
 		m_Killer.m_uiKillerHookTicks = 0;
 		m_Killer.m_KillerID = m_pPlayer->GetCID();
