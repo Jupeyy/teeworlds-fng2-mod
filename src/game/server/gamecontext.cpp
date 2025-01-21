@@ -15,6 +15,7 @@
 #include "gamemodes/fng2boom.h"
 #include "gamemodes/fng2boomsolo.h"
 #include "gamemodes/fng2_4teams.h"
+#include <cstdint>
 
 //other gametypes(for modding without changing original sources)
 #include "gamecontext_additional_gametypes_includes.h"
