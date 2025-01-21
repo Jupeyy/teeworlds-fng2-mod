@@ -48,7 +48,7 @@ else()
   set(TARGET_BITS "64")
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if((CMAKE_SYSTEM_NAME STREQUAL "Windows") OR (CMAKE_SYSTEM_NAME STREQUAL "MSYS"))
   set(TARGET_OS "windows")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(TARGET_OS "linux")
@@ -355,7 +355,7 @@ if(NOT(GTEST_FOUND))
   endif()
 endif()
 
-if(TARGET_OS STREQUAL "windows")
+if((TARGET_OS STREQUAL "windows") OR MINGW)
   set(PLATFORM_LIBS ws2_32) # Windows sockets
 elseif(TARGET_OS STREQUAL "mac")
   find_library(CARBON Carbon)

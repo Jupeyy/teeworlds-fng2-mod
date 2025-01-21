@@ -21,10 +21,18 @@ jobs:
           build-args: --parallel
           package-file: fng-*-linux_x86_64.tar.xz
         - os: windows-latest
-          cmake-args: -G "Visual Studio 16 2019" -A x64
+          cmake-args: -G "Ninja"
           package-file: fng-*-win64.zip
-
+    defaults:
+      run:
+        shell: ${{ matrix.os == 'windows-latest' && 'msys2 {0}' || 'bash {0}' }}
     steps:
+    - name: Prepare Windows (msys2)
+      uses: msys2/setup-msys2@v2
+      if: contains(matrix.os, 'windows')
+      with:
+        msystem: MINGW64
+
     - uses: actions/checkout@v4
       with:
         submodules: true
@@ -34,6 +42,11 @@ jobs:
       run: |
         sudo apt-get update -y
         sudo apt-get install pkg-config cmake -y
+
+    - name: Prepare msys dependencies
+      if: contains(matrix.os, 'windows')
+      run: |
+        pacman --noconfirm -S git mingw-w64-x86_64-toolchain cmake ninja mingw-w64-x86_64-gcc
 
     - name: Build in release mode
       run: |
