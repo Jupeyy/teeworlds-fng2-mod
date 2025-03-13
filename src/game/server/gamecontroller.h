@@ -157,7 +157,7 @@ public:
 
 	virtual void PostReset();
 
-	virtual bool IsFalseSpike(int Team, int SpikeFlags);
+	virtual bool IsWrongSpike(int Team, int SpikeFlags);
 };
 
 #endif

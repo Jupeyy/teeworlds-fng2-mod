@@ -1285,14 +1285,14 @@ void CGameContext::CmdStats(CGameContext* pContext, int pClientID, const char** 
 		"║Normal: %d\n"
 		"║Team: %d\n"
 		"║Gold/Green/Purple: %d/%d/%d\n"
-		"║False: %d\n"
+		"║Wrong: %d\n"
 		"║Deaths(while frozen): %d\n"
 		"║\n"
 		"╠═══════════ Misc ══════════\n"
 		"║\n"
 		"║Mates hammer-/unfrozen: %d/%d\n"
 		"║\n"
-		"╚══════════════════════════\n", p->m_Stats.m_Kills, p->m_Stats.m_Hits, (p->m_Stats.m_Hits != 0) ? (float)((float)p->m_Stats.m_Kills / (float)p->m_Stats.m_Hits) : (float)p->m_Stats.m_Kills, p->m_Stats.m_Shots, ((float)p->m_Stats.m_Kills / (float)(p->m_Stats.m_Shots == 0 ? 1: p->m_Stats.m_Shots)) * 100.f, p->m_Stats.m_GrabsNormal, p->m_Stats.m_GrabsTeam, p->m_Stats.m_GrabsGold, p->m_Stats.m_GrabsGreen, p->m_Stats.m_GrabsPurple, p->m_Stats.m_GrabsFalse, p->m_Stats.m_Deaths, p->m_Stats.m_UnfreezingHammerHits, p->m_Stats.m_Unfreezes);
+		"╚══════════════════════════\n", p->m_Stats.m_Kills, p->m_Stats.m_Hits, (p->m_Stats.m_Hits != 0) ? (float)((float)p->m_Stats.m_Kills / (float)p->m_Stats.m_Hits) : (float)p->m_Stats.m_Kills, p->m_Stats.m_Shots, ((float)p->m_Stats.m_Kills / (float)(p->m_Stats.m_Shots == 0 ? 1: p->m_Stats.m_Shots)) * 100.f, p->m_Stats.m_GrabsNormal, p->m_Stats.m_GrabsTeam, p->m_Stats.m_GrabsGold, p->m_Stats.m_GrabsGreen, p->m_Stats.m_GrabsPurple, p->m_Stats.m_GrabsWrong, p->m_Stats.m_Deaths, p->m_Stats.m_UnfreezingHammerHits, p->m_Stats.m_Unfreezes);
 
 	CNetMsg_Sv_Motd Msg;
 	Msg.m_pMessage = buff;
@@ -2130,7 +2130,7 @@ void CGameContext::SendRoundStats() {
 		SendChatTarget(i, buff);
 		str_format(buff, 300, "║Gold/Green/Purple: %d/%d/%d", p->m_Stats.m_GrabsGold, p->m_Stats.m_GrabsGreen, p->m_Stats.m_GrabsPurple);
 		SendChatTarget(i, buff);
-		str_format(buff, 300, "║False: %d", p->m_Stats.m_GrabsFalse);
+		str_format(buff, 300, "║Wrong: %d", p->m_Stats.m_GrabsWrong);
 		SendChatTarget(i, buff);
 		str_format(buff, 300, "║Deaths(while frozen): %d", p->m_Stats.m_Deaths);
 		SendChatTarget(i, buff);

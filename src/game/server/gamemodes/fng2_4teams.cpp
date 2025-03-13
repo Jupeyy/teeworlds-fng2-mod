@@ -458,9 +458,9 @@ int CGameControllerFNG24Teams::OnCharacterDeath(class CCharacter *pVictim, class
 				m_a4Teamscore[TEAM_RED] += m_Config.m_SvTeamScoreSpikeTeam;
 				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeTeam);
 			} else {
-				pKiller->m_Stats.m_GrabsFalse++;				
-				m_a4Teamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeFalse;
-				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeFalse);
+				pKiller->m_Stats.m_GrabsWrong++;				
+				m_a4Teamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeWrong;
+				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeWrong);
 			}
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
 		} else if(Weapon == WEAPON_SPIKE_BLUE){
@@ -470,9 +470,9 @@ int CGameControllerFNG24Teams::OnCharacterDeath(class CCharacter *pVictim, class
 				m_a4Teamscore[TEAM_BLUE] += m_Config.m_SvTeamScoreSpikeTeam;
 				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeTeam);
 			} else {
-				pKiller->m_Stats.m_GrabsFalse++;
-				m_a4Teamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeFalse;
-				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeFalse);
+				pKiller->m_Stats.m_GrabsWrong++;
+				m_a4Teamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeWrong;
+				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeWrong);
 			}
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
 		} else if(Weapon == WEAPON_SPIKE_GREEN){
@@ -482,9 +482,9 @@ int CGameControllerFNG24Teams::OnCharacterDeath(class CCharacter *pVictim, class
 				m_a4Teamscore[TEAM_GREEN] += m_Config.m_SvTeamScoreSpikeTeam;
 				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeTeam);
 			} else {
-				pKiller->m_Stats.m_GrabsFalse++;
-				m_a4Teamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeFalse;
-				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeFalse);
+				pKiller->m_Stats.m_GrabsWrong++;
+				m_a4Teamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeWrong;
+				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeWrong);
 			}
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
 		} else if(Weapon == WEAPON_SPIKE_PURPLE){
@@ -494,9 +494,9 @@ int CGameControllerFNG24Teams::OnCharacterDeath(class CCharacter *pVictim, class
 				m_a4Teamscore[TEAM_PURPLE] += m_Config.m_SvTeamScoreSpikeTeam;
 				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeTeam);
 			} else {
-				pKiller->m_Stats.m_GrabsFalse++;
-				m_a4Teamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeFalse;
-				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeFalse);
+				pKiller->m_Stats.m_GrabsWrong++;
+				m_a4Teamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeWrong;
+				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeWrong);
 			}
 			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
 		} else if(Weapon == WEAPON_SPIKE_GOLD){
@@ -940,7 +940,7 @@ void CGameControllerFNG24Teams::CmdJoinTeam(CGameContext* pContext, int pClientI
 	}
 }
 
-bool CGameControllerFNG24Teams::IsFalseSpike(int Team, int SpikeFlags) {
+bool CGameControllerFNG24Teams::IsWrongSpike(int Team, int SpikeFlags) {
 	if (Team == TEAM_BLUE && (SpikeFlags&(CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_GREEN | CCollision::COLFLAG_SPIKE_PURPLE)) != 0) return true;
 	else if (Team == TEAM_RED && (SpikeFlags&(CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_GREEN | CCollision::COLFLAG_SPIKE_PURPLE)) != 0) return true;
 	else if (Team == TEAM_GREEN && (SpikeFlags&(CCollision::COLFLAG_SPIKE_RED | CCollision::COLFLAG_SPIKE_BLUE | CCollision::COLFLAG_SPIKE_PURPLE)) != 0) return true;
