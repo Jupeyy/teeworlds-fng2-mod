@@ -443,39 +443,11 @@ endif()
 ########################################################################
 
 set(EXPECTED_DATA
-  maps/4TeamsFNG_random.map
   maps/4TeamsFNG.map
+  maps/4TeamsFNG_random.map
   maps/AliveFNG.map
   maps/IIT_Edited.map
   maps/openfng5Beat.map
-  mapres/desert_mountains.png
-  mapres/winter_doodads.png
-  mapres/moon.png
-  mapres/mountains.png
-  mapres/grass_main.png
-  mapres/jungle_doodads.png
-  mapres/stars.png
-  mapres/desert_main.png
-  mapres/winter_mountains3.png
-  mapres/winter_mountains.png
-  mapres/generic_unhookable.png
-  mapres/winter_main.png
-  mapres/jungle_deathtiles.png
-  mapres/jungle_background.png
-  mapres/bg_cloud3.png
-  mapres/desert_doodads.png
-  mapres/sun.png
-  mapres/jungle_main.png
-  mapres/bg_cloud2.png
-  mapres/winter_mountains2.png
-  mapres/jungle_midground.png
-  mapres/desert_mountains2.png
-  mapres/snow.png
-  mapres/jungle_unhookables.png
-  mapres/desert_sun.png
-  mapres/bg_cloud1.png
-  mapres/grass_doodads.png
-  mapres/generic_deathtiles.png
 )
 
 set_glob(DATA GLOB_RECURSE "png;map" data ${EXPECTED_DATA})
