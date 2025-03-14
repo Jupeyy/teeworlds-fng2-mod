@@ -697,14 +697,16 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   gamecontroller.h
   gamemodes/fng2.cpp
   gamemodes/fng2.h
-  gamemodes/fng2boom.cpp
-  gamemodes/fng2boom.h
   gamemodes/fng2_4teams.cpp
   gamemodes/fng2_4teams.h
+  gamemodes/fng2boom.cpp
+  gamemodes/fng2boom.h
   gamemodes/fng2boomsolo.cpp
   gamemodes/fng2boomsolo.h
   gamemodes/fng2solo.cpp
   gamemodes/fng2solo.h
+  gameserver_config.cpp
+  gameserver_config.h
   gameworld.cpp
   gameworld.h
   laserText.cpp
