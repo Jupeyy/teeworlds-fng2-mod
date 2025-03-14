@@ -39,7 +39,7 @@ public:
 	
 	static void CmdJoinTeam(CGameContext* pContext, int pClientID, const char** pArgs, int ArgNum);
 
-	virtual bool IsFalseSpike(int Team, int SpikeFlags);
+	virtual bool IsWrongSpike(int Team, int SpikeFlags);
 protected:
 	void EndRound();
 	
