@@ -21,7 +21,6 @@
 #include "gamecontext_additional_gametypes_includes.h"
 
 #include "laserText.h"
-#include "gameserver_config.h"
 
 #include <vector>
 #include <time.h>
